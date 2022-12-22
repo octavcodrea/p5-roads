@@ -1,6 +1,7 @@
 import P5 from "p5";
 import seedrandom from "seedrandom";
-import { mapGradient, sr } from "./utils/common";
+import { floorCeiling, mapGradient, sr, srExtra, srn } from "./utils/common";
+import { brushstrokePencil } from "./utils/p5utils";
 
 const sketch = (p5: P5) => {
     const canvasWidth = 1000;
@@ -21,12 +22,14 @@ const sketch = (p5: P5) => {
     // color palette
 
     var colors = [
+        "#863123",
         "#ff0000",
+        "#fe6f10",
         "#feb30f",
-        "#0aa4f7",
-        "#000000",
+        "#fbf26f",
         "#ffffff",
-        "#ff0000",
+        "#4fd2de",
+        "#0aa4f7",
     ];
     const gradient = mapGradient(
         colors.map((c) => {
@@ -35,7 +38,7 @@ const sketch = (p5: P5) => {
                 opacity: 1,
             };
         }),
-        50,
+        20,
         "hex"
     );
 
@@ -51,7 +54,7 @@ const sketch = (p5: P5) => {
 
     // number of drawing agents
 
-    var nAgents = 10;
+    var nAgents = 50;
 
     let border = 1;
 
@@ -61,16 +64,19 @@ const sketch = (p5: P5) => {
         //createCanvas(1080, 608);
         p5.createCanvas(canvasWidth, canvasHeight);
         p5.colorMode(p5.HSB, 360, 100, 100);
-        p5.strokeCap(p5.SQUARE);
+        p5.noStroke();
+        p5.strokeCap(p5.ROUND);
+        p5.angleMode(p5.RADIANS);
 
         p5.background(0, 0, 0);
 
         for (let i = 0; i < nAgents; i++) {
             agents.push(
                 new Agent(
-                    p5.width * 0.5,
-                    p5.height * 0.5 + p5.random(-0.5, 0.5) * p5.height,
-                    p5.random(0, 100).toString()
+                    p5.width * p5.random(-0.15, 0.3),
+                    p5.height * p5.random(-0.15, 0),
+                    p5.random(0, 100).toString(),
+                    1
                 )
             );
             //agent.push(new Agent(width*0.40));
@@ -87,9 +93,9 @@ const sketch = (p5: P5) => {
             agents[i].update();
         }
 
-        p5.stroke(0, 0, 100);
+        // p5.stroke(0, 0, 100);
 
-        p5.noFill();
+        // p5.noFill();
     };
 
     // select random colors with weights from palette
@@ -118,7 +124,7 @@ const sketch = (p5: P5) => {
     class Agent {
         p: P5.Vector;
         direction: number;
-        color: P5.Color;
+        color: P5.Color | string;
         scale: number;
         strokeWidth: number;
 
@@ -128,28 +134,13 @@ const sketch = (p5: P5) => {
         colorIndex: number;
 
         constructor(x0: number, y0: number, seed: string, direction?: number) {
-            if (p5.random(0, 1) > 0.5) {
-                this.p = p5.createVector(x0, y0);
-                this.direction = direction ?? 1;
-                this.color = generateColor(10);
-                this.scale = p5.random(1, 10);
-                this.strokeWidth = 5 + 5 * p5.sin(p5.frameCount);
-                this.seed = seed;
-                this.colorIndex = Math.floor(sr(this.seed) * gradient.length);
-            } else {
-                this.p = p5.createVector(
-                    x0,
-                    p5.height * 0.5 + p5.randomGaussian() * 30
-                );
-                this.direction = direction ?? -1;
-                this.color = generateColor(10);
-                this.scale = p5.random(1, 5);
-
-                this.seed = seed;
-                this.colorIndex = Math.floor(sr(this.seed) * gradient.length);
-                this.strokeWidth =
-                    5 + 5 * p5.sin(p5.frameCount) * seedrandom(this.seed)();
-            }
+            this.p = p5.createVector(x0, y0);
+            this.direction = direction ?? 1;
+            this.color = colors[Math.floor(colors.length * p5.random(0, 1))];
+            this.scale = p5.random(1, 10);
+            this.strokeWidth = u(10) + u(1) * p5.sin(p5.frameCount);
+            this.seed = seed;
+            this.colorIndex = Math.floor(sr(this.seed) * gradient.length);
 
             this.pOld = p5.createVector(this.p.x, this.p.y);
 
@@ -167,67 +158,81 @@ const sketch = (p5: P5) => {
                 this.step;
 
             if (
-                this.p.x >= p5.width ||
-                this.p.x <= 0 ||
-                this.p.y <= 0 ||
-                this.p.y >= p5.height
+                this.p.x >= p5.width * 1.2 ||
+                this.p.x <= -p5.width * 0.2 ||
+                this.p.y <= -p5.height * 0.2 ||
+                this.p.y >= p5.height * 1.2
             ) {
                 this.step = 0;
                 //destroy agent
                 agents.splice(agents.indexOf(this), 1);
             }
 
-            if (this.p.y < border || this.p.y > p5.height - border) {
-                this.direction *= -p5.random(0.9, 1.1);
-            }
+            // if (this.p.y < border || this.p.y > p5.height - border) {
+            //     this.direction *= -p5.random(0.9, 1.1);
+            // }
 
-            if (this.colorIndex >= gradient.length) {
-                this.colorIndex = 0;
-            } else {
-                this.colorIndex += 0.1;
-            }
+            // if (this.colorIndex >= gradient.length) {
+            //     this.colorIndex = 0;
+            // } else {
+            //     this.colorIndex += 0.1;
+            // }
 
+            this.strokeWidth = this.strokeWidth * p5.random(0.97, 1.03);
             p5.strokeWeight(this.strokeWidth);
-            p5.stroke(gradient[Math.floor(this.colorIndex)] ?? gradient[0]);
+            // p5.stroke(gradient[Math.floor(this.colorIndex)] ?? gradient[0]);
+            // p5.stroke(this.color as P5.Color);
+            brushstrokePencil({
+                p5: p5,
+                x: this.p.x,
+                y: this.p.y,
+                brushSize: this.strokeWidth,
+                color: this.color as P5.Color,
+                // density: p5.random(0.01, 0.8),
+                density: 0.8,
+                stippleSize: u(2),
+                stipplePositionRandomness: u(1),
+                stippleSizeRandomness: u(3),
+            });
             p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
 
             this.pOld.set(this.p);
 
-            if (
-                this.step !== 0 &&
-                p5.frameCount % Math.floor(200 * seedrandom(this.seed)()) ===
-                    0 &&
-                p5.random(0, 1) > 0.5 &&
-                agents.length < 300
-            ) {
-                this.step = 0;
-                //destroy agent
-                agents.splice(agents.indexOf(this), 1);
+            // if (
+            //     this.step !== 0 &&
+            //     p5.frameCount % Math.floor(200 * seedrandom(this.seed)()) ===
+            //         0 &&
+            //     p5.random(0, 1) > 0.5 &&
+            //     agents.length < 300
+            // ) {
+            //     this.step = 0;
+            //     //destroy agent
+            //     agents.splice(agents.indexOf(this), 1);
 
-                agents.push(
-                    new Agent(
-                        this.p.x,
-                        this.p.y,
-                        this.p.x.toString() + this.p.y,
-                        this.direction + p5.random(-0.7, 0.7)
-                    )
-                );
-                agents.push(
-                    new Agent(
-                        this.p.x,
-                        this.p.y,
-                        this.p.y.toString() + this.p.x,
-                        this.direction + p5.random(-1, 1)
-                    )
-                );
+            //     agents.push(
+            //         new Agent(
+            //             this.p.x,
+            //             this.p.y,
+            //             this.p.x.toString() + this.p.y,
+            //             this.direction + p5.random(-0.7, 0.7)
+            //         )
+            //     );
+            //     agents.push(
+            //         new Agent(
+            //             this.p.x,
+            //             this.p.y,
+            //             this.p.y.toString() + this.p.x,
+            //             this.direction + p5.random(-1, 1)
+            //         )
+            //     );
 
-                console.log(
-                    "agents: ",
-                    agents.length,
-                    "framecount: ",
-                    p5.frameCount
-                );
-            }
+            //     console.log(
+            //         "agents: ",
+            //         agents.length,
+            //         "framecount: ",
+            //         p5.frameCount
+            //     );
+            // }
         }
     }
 
@@ -246,23 +251,28 @@ const sketch = (p5: P5) => {
 
         const s = seed ?? "seed";
 
-        let k1 = 5;
+        let k1 = 2;
         let k2 = 3;
 
         let u =
-            p5.sin(k1 * y) +
-            p5.cos(k2 * y) +
-            p5.map(p5.noise(x, y), 0, 1, -1, 1);
+            0.8 +
+            p5.sin(srExtra(1, s) * 100 + p5.frameCount * 0.01 * srExtra(1, s)) *
+                2 *
+                srExtra(2, s) +
+            (p5.noise(x, y) - 0.5) * 4;
+
         let v =
-            p5.sin(k2 * x) -
-            p5.cos(k1 * x) +
-            p5.map(p5.noise(x, y), 0, 1, -1, 1);
+            1 +
+            p5.cos(srExtra(2, s) * 100 + p5.frameCount * 0.04 * srExtra(3, s)) *
+                0.8 *
+                srExtra(4, s) +
+            (p5.noise(x, y) - 0.5) * 4;
 
         // litle trick to move from left to right
 
-        if (u <= 0) {
-            u = -u;
-        }
+        // if (u <= 0) {
+        //     u = -u;
+        // }
 
         return p5.createVector(u, v);
     }
