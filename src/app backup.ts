@@ -1,6 +1,5 @@
 import P5 from "p5";
 import seedrandom from "seedrandom";
-import { mapGradient, sr } from "./utils/common";
 
 const sketch = (p5: P5) => {
     const canvasWidth = 1000;
@@ -20,24 +19,7 @@ const sketch = (p5: P5) => {
 
     // color palette
 
-    var colors = [
-        "#ff0000",
-        "#feb30f",
-        "#0aa4f7",
-        "#000000",
-        "#ffffff",
-        "#ff0000",
-    ];
-    const gradient = mapGradient(
-        colors.map((c) => {
-            return {
-                color: c,
-                opacity: 1,
-            };
-        }),
-        50,
-        "hex"
-    );
+    var colors = ["#ff0000", "#feb30f", "#0aa4f7", "#000000", "#ffffff"];
 
     // set weights for each color
 
@@ -53,7 +35,7 @@ const sketch = (p5: P5) => {
 
     var nAgents = 10;
 
-    let border = 1;
+    let border = 100;
 
     let agents: Agent[] = [];
 
@@ -69,7 +51,7 @@ const sketch = (p5: P5) => {
             agents.push(
                 new Agent(
                     p5.width * 0.5,
-                    p5.height * 0.5 + p5.random(-0.5, 0.5) * p5.height,
+                    p5.height * 0.5 + p5.random(-1, 1) * p5.height * 0.5,
                     p5.random(0, 100).toString()
                 )
             );
@@ -125,28 +107,24 @@ const sketch = (p5: P5) => {
         pOld: P5.Vector;
         step: number;
         seed: string;
-        colorIndex: number;
 
-        constructor(x0: number, y0: number, seed: string, direction?: number) {
+        constructor(x0: number, y0: number, seed: string) {
             if (p5.random(0, 1) > 0.5) {
                 this.p = p5.createVector(x0, y0);
-                this.direction = direction ?? 1;
+                this.direction = 1;
                 this.color = generateColor(10);
-                this.scale = p5.random(1, 10);
+                this.scale = 5;
                 this.strokeWidth = 5 + 5 * p5.sin(p5.frameCount);
                 this.seed = seed;
-                this.colorIndex = Math.floor(sr(this.seed) * gradient.length);
             } else {
                 this.p = p5.createVector(
                     x0,
                     p5.height * 0.5 + p5.randomGaussian() * 30
                 );
-                this.direction = direction ?? -1;
+                this.direction = -1;
                 this.color = generateColor(10);
-                this.scale = p5.random(1, 5);
-
+                this.scale = 5;
                 this.seed = seed;
-                this.colorIndex = Math.floor(sr(this.seed) * gradient.length);
                 this.strokeWidth =
                     5 + 5 * p5.sin(p5.frameCount) * seedrandom(this.seed)();
             }
@@ -181,14 +159,8 @@ const sketch = (p5: P5) => {
                 this.direction *= -p5.random(0.9, 1.1);
             }
 
-            if (this.colorIndex >= gradient.length) {
-                this.colorIndex = 0;
-            } else {
-                this.colorIndex += 0.1;
-            }
-
             p5.strokeWeight(this.strokeWidth);
-            p5.stroke(gradient[Math.floor(this.colorIndex)] ?? gradient[0]);
+            p5.stroke(this.color);
             p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
 
             this.pOld.set(this.p);
@@ -208,16 +180,14 @@ const sketch = (p5: P5) => {
                     new Agent(
                         this.p.x,
                         this.p.y,
-                        this.p.x.toString() + this.p.y,
-                        this.direction + p5.random(-0.7, 0.7)
+                        this.p.x.toString() + this.p.y
                     )
                 );
                 agents.push(
                     new Agent(
                         this.p.x,
                         this.p.y,
-                        this.p.y.toString() + this.p.x,
-                        this.direction + p5.random(-1, 1)
+                        this.p.y.toString() + this.p.x
                     )
                 );
 
@@ -250,12 +220,12 @@ const sketch = (p5: P5) => {
         let k2 = 3;
 
         let u =
-            p5.sin(k1 * y) +
-            p5.cos(k2 * y) +
+            p5.sin(k1 * y * seedrandom(s)()) +
+            p5.cos(k2 * y * seedrandom(s)()) +
             p5.map(p5.noise(x, y), 0, 1, -1, 1);
         let v =
-            p5.sin(k2 * x) -
-            p5.cos(k1 * x) +
+            p5.sin(k2 * x * seedrandom(s)()) -
+            p5.cos(k1 * x * seedrandom(s)()) +
             p5.map(p5.noise(x, y), 0, 1, -1, 1);
 
         // litle trick to move from left to right
