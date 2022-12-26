@@ -1,5 +1,5 @@
 import P5 from "p5";
-import { sr, srExtra, srnExtra } from "./common";
+import { calculatePointFromAngle, sr, srExtra, srnExtra } from "./common";
 
 export function brushstrokePencil(params: {
     p5: P5;
@@ -66,6 +66,7 @@ export function brushstrokePencil(params: {
             const thisStippleSize = stippleSize + randSize;
 
             p5.fill(color);
+            p5.noStroke();
             p5.ellipse(stippleX, stippleY, thisStippleSize, thisStippleSize);
         }
     }
@@ -141,3 +142,132 @@ export function brushstrokeArea(brushParams: {
             break;
     }
 }
+
+export function brushstrokeLine(brushParams: {
+    p5: P5;
+    x: number;
+    y: number;
+    brushType: "random";
+    colors: P5.Color[];
+    frameCount: number;
+    brushProps: {
+        brushStrokeWidth: number;
+        stipplePositionRandomness?: number;
+    };
+    drip?: number;
+    directionAngle?: number;
+}) {
+    let { p5, x, y, brushType, colors, frameCount, directionAngle, drip } =
+        brushParams;
+
+    let { brushStrokeWidth, stipplePositionRandomness } =
+        brushParams.brushProps;
+
+    let angle = directionAngle ?? 0;
+    const steps = 10;
+
+    const pStart = calculatePointFromAngle({
+        originX: x,
+        originY: y,
+        angle: angle - p5.PI / 2,
+        distance: brushStrokeWidth / 2,
+        mode: "radians",
+    });
+
+    const pEnd = calculatePointFromAngle({
+        originX: x,
+        originY: y,
+        angle: angle + p5.PI / 2,
+        distance: brushStrokeWidth / 2,
+        mode: "radians",
+    });
+
+    switch (brushType) {
+        case "random":
+            p5.strokeWeight(brushStrokeWidth / steps);
+            for (let i = 1; i < steps; i++) {
+                const xStart =
+                    (pStart.x * (steps - i)) / steps + (pEnd.x * i) / steps;
+
+                const yStart =
+                    (pStart.y * (steps - i)) / steps + (pEnd.y * i) / steps;
+
+                const xEnd =
+                    (pStart.x * (steps - i - 1)) / steps +
+                    (pEnd.x * (i + 1)) / steps;
+                const yEnd =
+                    (pStart.y * (steps - i - 1)) / steps +
+                    (pEnd.y * (i + 1)) / steps;
+
+                if (stipplePositionRandomness !== undefined) {
+                    const randX = srnExtra(
+                        x % 10,
+                        x.toString() + p5.frameCount + i
+                    );
+                    const randY = srnExtra(
+                        y % 10,
+                        y.toString() + p5.frameCount + i
+                    );
+
+                    p5.line(
+                        xStart + randX,
+                        yStart + randY,
+                        xEnd + randX,
+                        yEnd + randY
+                    );
+
+                    if (drip !== undefined) {
+                        if (
+                            sr(drip.toString() + randX + randY + frameCount) >
+                            0.99
+                        ) {
+                            const offsetX =
+                                srnExtra(
+                                    x % 10,
+                                    x.toString() + p5.frameCount + i
+                                ) * brushStrokeWidth;
+
+                            const offsetY =
+                                srnExtra(
+                                    y % 10,
+                                    y.toString() + p5.frameCount + i
+                                ) * brushStrokeWidth;
+
+                            p5.line(
+                                xStart + offsetX,
+                                yStart + offsetY,
+                                xEnd + offsetX,
+                                yEnd + offsetY
+                            );
+
+                            p5.stroke(
+                                colors[
+                                    Math.floor(
+                                        sr(i.toString() + frameCount + i) *
+                                            colors.length
+                                    )
+                                ]
+                            );
+                        }
+                    } else {
+                        p5.line(xStart, yStart, xEnd, yEnd);
+                    }
+
+                    p5.stroke(
+                        colors[
+                            Math.floor(
+                                sr(i.toString() + frameCount + i) *
+                                    colors.length
+                            )
+                        ]
+                    );
+                }
+            }
+
+            break;
+    }
+}
+
+export const angleFromVector = (vector: { x: number; y: number }) => {
+    return Math.atan2(vector.y, vector.x);
+};

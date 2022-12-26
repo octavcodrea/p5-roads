@@ -1,7 +1,20 @@
 import P5 from "p5";
 import seedrandom from "seedrandom";
-import { floorCeiling, mapGradient, sr, srExtra, srn } from "./utils/common";
-import { brushstrokePencil } from "./utils/p5utils";
+import {
+    calculatePointFromAngle,
+    floorCeiling,
+    mapGradient,
+    sr,
+    srExtra,
+    srn,
+} from "./utils/common";
+import {
+    angleFromVector,
+    brushstrokeLine,
+    brushstrokePencil,
+} from "./utils/p5utils";
+import Palettes from "./assets/palettes";
+import noiseColor from "./assets/images/noise-color.png";
 
 const sketch = (p5: P5) => {
     const canvasWidth = 1000;
@@ -17,24 +30,24 @@ const sketch = (p5: P5) => {
             return 0;
         }
     }
-    // "paint particles mixing" by garabatospr
 
-    // color palette
+    const seed = Math.random() * 1000000000000000;
 
     var colors = [
-        "#863123",
-        "#ff0000",
-        "#fe6f10",
+        "#5949c1",
+        "#1593b2",
+        "#1cba8d",
         "#feb30f",
         "#fbf26f",
         "#ffffff",
         "#4fd2de",
         "#0aa4f7",
-    ];
+    ].map((c) => p5.color(c));
+
     const gradient = mapGradient(
         colors.map((c) => {
             return {
-                color: c,
+                color: c.toString(),
                 opacity: 1,
             };
         }),
@@ -42,46 +55,50 @@ const sketch = (p5: P5) => {
         "hex"
     );
 
-    // set weights for each color
-
-    // red, blue, and white dominates
-
-    var weights = [1, 2, 2, 2, 2];
-
-    // scale of the vector field
-    // smaller values => bigger structures
-    // bigger values  ==> smaller structures
-
-    // number of drawing agents
-
     var nAgents = 50;
 
-    let border = 1;
-
     let agents: Agent[] = [];
+    let selectedPalette = 0;
+
+    let noiseImg: P5.Image;
+    p5.preload = () => {
+        noiseImg = p5.loadImage(noiseColor);
+    };
 
     p5.setup = () => {
-        //createCanvas(1080, 608);
         p5.createCanvas(canvasWidth, canvasHeight);
         p5.colorMode(p5.HSB, 360, 100, 100);
         p5.noStroke();
         p5.strokeCap(p5.ROUND);
         p5.angleMode(p5.RADIANS);
 
-        p5.background(0, 0, 0);
+        p5.background(
+            p5.color(Palettes[selectedPalette].background).toString()
+        );
 
         for (let i = 0; i < nAgents; i++) {
             agents.push(
-                new Agent(
-                    p5.width * p5.random(-0.15, 0.3),
-                    p5.height * p5.random(-0.15, 0),
-                    p5.random(0, 100).toString(),
-                    1
-                )
+                new Agent({
+                    x0: p5.width * p5.random(-0.15, 0.3),
+                    y0: p5.height * p5.random(-0.15, 0),
+                    seed: p5.frameCount.toString() + i.toString(),
+                    direction: 1,
+                    agentIndex: agents.length,
+                    colors: Palettes[selectedPalette].colors[
+                        agents.length % 2 === 0 ? 0 : 1
+                    ].map((c) => p5.color(c.color)),
+                })
             );
-            //agent.push(new Agent(width*0.40));
-            //agent.push(new Agent(width*0.3));
         }
+
+        //blend mode
+        p5.blendMode(p5.OVERLAY);
+
+        //image opacity
+        p5.tint(255, 0.1);
+
+        //image
+        p5.image(noiseImg, 0, 0, p5.width, p5.height);
     };
 
     p5.draw = () => {
@@ -92,39 +109,15 @@ const sketch = (p5: P5) => {
         for (let i = 0; i < agents.length; i++) {
             agents[i].update();
         }
-
-        // p5.stroke(0, 0, 100);
-
-        // p5.noFill();
     };
-
-    // select random colors with weights from palette
-
-    function myRandom(colors: string[], weights: number[]) {
-        let sum = 0;
-
-        for (let i = 0; i < colors.length; i++) {
-            sum += weights[i];
-        }
-
-        let rr = p5.random(0, sum);
-
-        for (let j = 0; j < weights.length; j++) {
-            if (weights[j] >= rr) {
-                return colors[j];
-            }
-            rr -= weights[j];
-        }
-
-        return colors[colors.length - 1];
-    }
 
     // paintining agent
 
     class Agent {
+        agentIndex: number;
         p: P5.Vector;
         direction: number;
-        color: P5.Color | string;
+        colors: P5.Color[];
         scale: number;
         strokeWidth: number;
 
@@ -133,10 +126,19 @@ const sketch = (p5: P5) => {
         seed: string;
         colorIndex: number;
 
-        constructor(x0: number, y0: number, seed: string, direction?: number) {
+        constructor(params: {
+            x0: number;
+            y0: number;
+            seed: string;
+            direction?: number;
+            agentIndex?: number;
+            colors?: P5.Color[];
+        }) {
+            const { x0, y0, seed, direction, agentIndex, colors } = params;
+            this.agentIndex = agentIndex ?? 0;
             this.p = p5.createVector(x0, y0);
             this.direction = direction ?? 1;
-            this.color = colors[Math.floor(colors.length * p5.random(0, 1))];
+            this.colors = colors ?? [p5.color("#000")];
             this.scale = p5.random(1, 10);
             this.strokeWidth = u(10) + u(1) * p5.sin(p5.frameCount);
             this.seed = seed;
@@ -145,17 +147,19 @@ const sketch = (p5: P5) => {
             this.pOld = p5.createVector(this.p.x, this.p.y);
 
             this.step = 1;
+            console.log("colors", this.colors);
         }
 
         update() {
-            this.p.x +=
-                this.direction *
-                vector_field(this.p.x, this.p.y, this.scale, this.seed).x *
-                this.step;
-            this.p.y +=
-                this.direction *
-                vector_field(this.p.x, this.p.y, this.scale, this.seed).y *
-                this.step;
+            const vector = vector_field(
+                this.p.x,
+                this.p.y,
+                this.scale,
+                this.seed
+            );
+
+            this.p.x += this.direction * vector.x * this.step;
+            this.p.y += this.direction * vector.y * this.step;
 
             if (
                 this.p.x >= p5.width * 1.2 ||
@@ -178,25 +182,82 @@ const sketch = (p5: P5) => {
             //     this.colorIndex += 0.1;
             // }
 
-            this.strokeWidth = this.strokeWidth * p5.random(0.97, 1.03);
-            p5.strokeWeight(this.strokeWidth);
-            // p5.stroke(gradient[Math.floor(this.colorIndex)] ?? gradient[0]);
-            // p5.stroke(this.color as P5.Color);
-            brushstrokePencil({
-                p5: p5,
-                x: this.p.x,
-                y: this.p.y,
-                brushSize: this.strokeWidth,
-                color: this.color as P5.Color,
-                // density: p5.random(0.01, 0.8),
-                density: 0.8,
-                stippleSize: u(2),
-                stipplePositionRandomness: u(1),
-                stippleSizeRandomness: u(3),
-            });
-            p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
+            if (this.agentIndex % 4 === 0) {
+                //blend mode
+                p5.blendMode(p5.MULTIPLY);
+
+                brushstrokePencil({
+                    p5: p5,
+                    x: this.p.x,
+                    y: this.p.y,
+                    brushSize: u(5),
+                    color: p5.color("#888"),
+                    density: 0.8,
+                    stippleSize: u(1),
+                    stipplePositionRandomness: u(2),
+                    stippleSizeRandomness: u(1),
+                });
+            } else if (this.agentIndex % 15 === 1) {
+                //blend mode
+                p5.blendMode(p5.DARKEST);
+
+                this.strokeWidth = this.strokeWidth * p5.random(0.95, 1.05);
+                p5.strokeWeight(this.strokeWidth / 5);
+
+                p5.stroke(Palettes[selectedPalette].accent);
+                p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
+            } else if (this.agentIndex % 15 === 2) {
+                if ((p5.frameCount * 0.5) % 2 === 0) {
+                    //blend mode
+                    p5.blendMode(p5.DARKEST);
+
+                    this.strokeWidth = this.strokeWidth * p5.random(0.95, 1.05);
+                    p5.strokeWeight(this.strokeWidth / 5);
+
+                    p5.stroke(p5.color("#444"));
+                    p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
+                }
+            } else {
+                p5.blendMode(p5.BLEND);
+                this.strokeWidth = this.strokeWidth * p5.random(0.97, 1.03);
+                p5.strokeWeight(this.strokeWidth);
+
+                brushstrokeLine({
+                    p5: p5,
+                    x: this.p.x,
+                    y: this.p.y,
+                    brushProps: {
+                        brushStrokeWidth: this.strokeWidth,
+                        stipplePositionRandomness: u(5),
+                    },
+                    brushType: "random",
+                    colors: this.colors,
+
+                    frameCount: p5.frameCount,
+                    directionAngle: angleFromVector(vector),
+                    drip: 0.02,
+                });
+            }
 
             this.pOld.set(this.p);
+
+            // if (p5.random(0, 1) > 0.99) {
+            //     const ellipsePoint = calculatePointFromAngle({
+            //         originX: this.p.x,
+            //         originY: this.p.y,
+            //         angle: angleFromVector(vector) + p5.PI / 2,
+            //         distance: this.strokeWidth * 2,
+            //         mode: "radians",
+            //     });
+
+            //     p5.noFill();
+            //     p5.ellipse(
+            //         ellipsePoint.x,
+            //         ellipsePoint.y,
+            //         this.strokeWidth / 2,
+            //         this.strokeWidth / 2
+            //     );
+            // }
 
             // if (
             //     this.step !== 0 &&
@@ -275,19 +336,6 @@ const sketch = (p5: P5) => {
         // }
 
         return p5.createVector(u, v);
-    }
-
-    function generateColor(scale: number) {
-        let temp = myRandom(colors, weights);
-
-        const myColor = p5.color(
-            p5.hue(temp) + p5.randomGaussian() * scale,
-            p5.saturation(temp) + p5.randomGaussian() * scale,
-            p5.brightness(temp) - scale,
-            p5.random(1, 100)
-        );
-
-        return myColor;
     }
 };
 
