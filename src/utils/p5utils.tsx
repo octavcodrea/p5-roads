@@ -497,3 +497,43 @@ export const rectangleStrip = (params: {
         }
     }
 };
+
+// const rectangleStripGrid = (params: {
+
+export function vector_field(
+    p5: P5,
+    x: number,
+    y: number,
+    myScale: number,
+    seed?: string
+) {
+    x = p5.map(x, 0, p5.width, -myScale, myScale);
+    y = p5.map(y, 0, p5.height, -myScale, myScale);
+
+    const s = seed ?? "seed";
+
+    let k1 = 2;
+    let k2 = 3;
+
+    let u =
+        0.8 +
+        p5.sin(srExtra(1, s) * 100 + p5.frameCount * 0.01 * srExtra(1, s)) *
+            2 *
+            srExtra(2, s) +
+        (p5.noise(x, y) - 0.5) * 4;
+
+    let v =
+        1 +
+        p5.cos(srExtra(2, s) * 100 + p5.frameCount * 0.04 * srExtra(3, s)) *
+            0.8 *
+            srExtra(4, s) +
+        (p5.noise(x, y) - 0.5) * 4;
+
+    // litle trick to move from left to right
+
+    // if (u <= 0) {
+    //     u = -u;
+    // }
+
+    return p5.createVector(u, v);
+}
