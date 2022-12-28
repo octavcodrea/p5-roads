@@ -12,6 +12,7 @@ import {
     angleFromVector,
     brushstrokeLine,
     brushstrokePencil,
+    rectangleStrip,
 } from "./utils/p5utils";
 import Palettes from "./assets/palettes";
 import noiseColor from "./assets/images/noise-color.png";
@@ -102,13 +103,50 @@ const sketch = (p5: P5) => {
     };
 
     p5.draw = () => {
+        if (p5.frameCount === 1) {
+            for (let i = 0; i < 3; i++) {
+                const x = p5.width * p5.random(0.2, 0.8);
+                const count = Math.floor(p5.random(5, 25));
+                const width = u(300) * p5.random(0.2, 1);
+
+                rectangleStrip({
+                    p5: p5,
+                    x1: x,
+                    y1: u(20),
+
+                    x2: x + width,
+                    y2: p5.height - u(20),
+                    padding: u(20),
+                    direction: "vertical",
+                    rectangleCount: count,
+                    rectangleProps: {
+                        color: p5.color("#ccb"),
+                        width: u(100),
+                        height: u(50),
+
+                        rectPositionRandomness: u(2),
+                        rectSizeRandomness: 0,
+
+                        brushPositionRandomness: u(1),
+                        brushSizeRandomness: 0,
+
+                        brushScale: u(10),
+                        brushStippleSize: u(1),
+                        brushStippleRandomness: u(2),
+                    },
+                });
+            }
+        }
+
         if (p5.frameCount > 5000) {
             p5.noLoop();
         }
 
-        for (let i = 0; i < agents.length; i++) {
-            agents[i].update();
-        }
+        const sortedAgents = agents.sort((a, b) => a.layer - b.layer);
+
+        // for (let i = 0; i < sortedAgents.length; i++) {
+        //     sortedAgents[i].update();
+        // }
     };
 
     // paintining agent
@@ -125,29 +163,45 @@ const sketch = (p5: P5) => {
         step: number;
         seed: string;
         colorIndex: number;
+        layer: number;
+        type: string;
 
         constructor(params: {
             x0: number;
             y0: number;
             seed: string;
+            layer?: number;
             direction?: number;
             agentIndex?: number;
             colors?: P5.Color[];
         }) {
-            const { x0, y0, seed, direction, agentIndex, colors } = params;
+            const { x0, y0, seed, direction, agentIndex, colors, layer } =
+                params;
             this.agentIndex = agentIndex ?? 0;
             this.p = p5.createVector(x0, y0);
             this.direction = direction ?? 1;
             this.colors = colors ?? [p5.color("#000")];
             this.scale = p5.random(1, 10);
-            this.strokeWidth = u(10) + u(1) * p5.sin(p5.frameCount);
+            this.strokeWidth = u(13) + u(3) * p5.sin(p5.frameCount);
             this.seed = seed;
             this.colorIndex = Math.floor(sr(this.seed) * gradient.length);
+            this.layer = 0;
+            this.type = "default";
 
             this.pOld = p5.createVector(this.p.x, this.p.y);
 
             this.step = 1;
-            console.log("colors", this.colors);
+
+            if (this.agentIndex % 4 === 0) {
+                this.type = "pencil";
+                this.layer = +1;
+            } else if (this.agentIndex % 15 === 1) {
+                this.type = "pen";
+            } else if (this.agentIndex % 15 === 2) {
+                this.type = "dashed-line";
+            } else {
+                this.layer = +(this.agentIndex + 3);
+            }
         }
 
         update() {
@@ -182,7 +236,7 @@ const sketch = (p5: P5) => {
             //     this.colorIndex += 0.1;
             // }
 
-            if (this.agentIndex % 4 === 0) {
+            if (this.type === "pencil") {
                 //blend mode
                 p5.blendMode(p5.MULTIPLY);
 
@@ -197,7 +251,7 @@ const sketch = (p5: P5) => {
                     stipplePositionRandomness: u(2),
                     stippleSizeRandomness: u(1),
                 });
-            } else if (this.agentIndex % 15 === 1) {
+            } else if (this.type === "pen") {
                 //blend mode
                 p5.blendMode(p5.DARKEST);
 
@@ -206,7 +260,7 @@ const sketch = (p5: P5) => {
 
                 p5.stroke(Palettes[selectedPalette].accent);
                 p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
-            } else if (this.agentIndex % 15 === 2) {
+            } else if (this.type === "dashed-line") {
                 if ((p5.frameCount * 0.5) % 2 === 0) {
                     //blend mode
                     p5.blendMode(p5.DARKEST);

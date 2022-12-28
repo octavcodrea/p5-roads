@@ -325,8 +325,17 @@ export function sr(seed: string | number) {
 export function srExtra(algorithm: number, seed: string | number) {
     let numberToReturn = 0;
     const s = typeof seed === "number" ? seed.toString() : seed;
+    let a = algorithm % 1 === 0 ? algorithm : Math.floor(algorithm);
 
-    switch (algorithm) {
+    if (a > 10) {
+        a = a % 10;
+    }
+
+    if (a < 0) {
+        a = Math.abs(a);
+    }
+
+    switch (a) {
         default:
             numberToReturn = seedrandom(s)();
             break;

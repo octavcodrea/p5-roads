@@ -42,16 +42,16 @@ const Palettes: PaletteType[] = [
 
         colors: [
             [
-                { color: "#DDCA22", opacity: 1 },
-                { color: "#dd2244", opacity: 1 },
+                { color: "#d0c66d", opacity: 1 },
+                { color: "#d24b64", opacity: 1 },
                 { color: "#574D62", opacity: 1 },
-                { color: "#31BBD9", opacity: 1 },
+                { color: "#4badc3", opacity: 1 },
             ],
             [
                 { color: "#D7481B", opacity: 1 },
-                { color: "#870735", opacity: 1 },
-                { color: "#2C1D56", opacity: 1 },
-                { color: "#1B3E67", opacity: 1 },
+                { color: "#8e1f48", opacity: 1 },
+                { color: "#3c2c68", opacity: 1 },
+                { color: "#284a71", opacity: 1 },
             ],
         ],
     },
