@@ -1,4 +1,5 @@
 import P5 from "p5";
+import { u } from "../app";
 import { calculatePointFromAngle, sr, srExtra, srn, srnExtra } from "./common";
 
 export function brushstrokePencil(params: {
@@ -160,7 +161,7 @@ export function brushstrokeLine(brushParams: {
         brushParams.brushProps;
 
     let angle = directionAngle ?? 0;
-    const steps = 10;
+    const steps = Math.max(10, brushStrokeWidth / u(2));
 
     const pStart = calculatePointFromAngle({
         originX: x,
@@ -510,19 +511,21 @@ export function vector_field(
     x = p5.map(x, 0, p5.width, -myScale, myScale);
     y = p5.map(y, 0, p5.height, -myScale, myScale);
 
+    const unit = u(1);
+
     const s = seed ?? "seed";
 
     let k1 = 2;
     let k2 = 3;
 
-    let u =
+    let vectorX =
         0.8 +
         p5.sin(srExtra(1, s) * 100 + p5.frameCount * 0.01 * srExtra(1, s)) *
             2 *
             srExtra(2, s) +
         (p5.noise(x, y) - 0.5) * 4;
 
-    let v =
+    let vectorY =
         1 +
         p5.cos(srExtra(2, s) * 100 + p5.frameCount * 0.04 * srExtra(3, s)) *
             0.8 *
@@ -535,5 +538,9 @@ export function vector_field(
     //     u = -u;
     // }
 
-    return p5.createVector(u, v);
+    return p5.createVector(vectorX * unit, vectorY * unit);
 }
+
+export const getVectorIntensity = (vector: P5.Vector) => {
+    return Math.sqrt(vector.x ** 2 + vector.y ** 2);
+};

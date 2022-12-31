@@ -7,6 +7,7 @@ import {
     brushstrokeLine,
     brushstrokePencil,
     brushstrokeRectangle,
+    getVectorIntensity,
     vector_field,
 } from "./utils/p5utils";
 import { getState } from "./store";
@@ -241,6 +242,10 @@ export class RectangleStripAgent {
                 this.rectanglesDrawn++;
             }
         }
+
+        if (this.rectanglesDrawn >= rectangleCount) {
+            this.removeAgent(this);
+        }
     }
 }
 
@@ -340,14 +345,15 @@ export class LineAgent {
 
         if (this.type === "pencil") {
             //blend mode
-            p5.blendMode(p5.MULTIPLY);
+            // p5.blendMode(p5.MULTIPLY);
+            p5.blendMode(p5.DARKEST);
 
             brushstrokePencil({
                 p5: p5,
                 x: this.p.x,
                 y: this.p.y,
                 brushSize: u(5),
-                color: p5.color("#888"),
+                color: p5.color(p5.random(16, 100)),
                 density: 0.8,
                 stippleSize: u(1),
                 stipplePositionRandomness: u(2),
@@ -363,7 +369,7 @@ export class LineAgent {
             p5.stroke(Palettes[selectedPalette].accent);
             p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
         } else if (this.type === "dashed-line") {
-            if ((p5.frameCount * 0.5) % 2 === 0) {
+            if ((p5.frameCount * 0.6) % 2 === 0) {
                 //blend mode
                 p5.blendMode(p5.DARKEST);
 

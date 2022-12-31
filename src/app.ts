@@ -3,9 +3,12 @@ import { LineAgent, RectangleStripAgent } from "./agents";
 import noiseColor from "./assets/images/noise-color.png";
 import Palettes from "./assets/palettes";
 import { mapGradient } from "./utils/common";
+import { brushstrokePencil, brushstrokeRectangle } from "./utils/p5utils";
+//import vanilla zustand store
+import { store } from "./store";
 
-const canvasWidth = 1000;
-const canvasHeight = 1200;
+const { canvasWidth, canvasHeight, selectedPalette } = store.getState();
+
 const unit = canvasWidth / 1000;
 
 export function u(x: number) {
@@ -42,11 +45,14 @@ const sketch = (p5: P5) => {
         "hex"
     );
 
-    var nAgents = 50;
+    var nLineAgents = 50;
+    var nStripAgents = 9;
 
     let lineAgents: LineAgent[] = [];
     let stripAgents: RectangleStripAgent[] = [];
     let selectedPalette = 0;
+
+    let rectanglesDrawn = false;
 
     function removeAgent(agent: LineAgent) {
         lineAgents = lineAgents.filter((a) => a !== agent);
@@ -72,7 +78,15 @@ const sketch = (p5: P5) => {
             p5.color(Palettes[selectedPalette].background).toString()
         );
 
-        for (let i = 0; i < nAgents; i++) {
+        for (let i = 0; i < nLineAgents; i++) {
+            let colors = (
+                lineAgents.length % 3 === 0
+                    ? Palettes[selectedPalette].colorsA
+                    : lineAgents.length % 3 === 1
+                    ? Palettes[selectedPalette].colorsB
+                    : Palettes[selectedPalette].colorsC
+            ).map((c) => p5.color(c.color));
+
             lineAgents.push(
                 new LineAgent({
                     p5: p5,
@@ -81,18 +95,16 @@ const sketch = (p5: P5) => {
                     seed: p5.frameCount.toString() + i.toString(),
                     direction: 1,
                     agentIndex: lineAgents.length,
-                    colors: Palettes[selectedPalette].colors[
-                        lineAgents.length % 2 === 0 ? 0 : 1
-                    ].map((c) => p5.color(c.color)),
+                    colors: colors,
                     removeAgent: removeAgent,
                 })
             );
         }
 
-        for (let i = 0; i < 3; i++) {
-            const x = p5.width * p5.random(0.2, 0.8);
-            const count = Math.floor(p5.random(9, 25));
-            const width = u(300) * p5.random(0.2, 1);
+        for (let i = 0; i < nStripAgents; i++) {
+            const x = p5.width * p5.random(0.05, 0.8);
+            const count = Math.floor(p5.random(15, 60));
+            const width = u(70) * p5.random(0.05, 1);
 
             stripAgents.push(
                 new RectangleStripAgent({
@@ -147,8 +159,87 @@ const sketch = (p5: P5) => {
             stripAgents[i].update();
         }
 
-        for (let i = 0; i < sortedAgents.length; i++) {
-            sortedAgents[i].update();
+        if (stripAgents.length === 0) {
+            for (let i = 0; i < sortedAgents.length; i++) {
+                sortedAgents[i].update();
+            }
+        }
+
+        if (stripAgents.length === 0 && rectanglesDrawn === false) {
+            for (let i = 0; i < 50; i++) {
+                const x1 = p5.random(0.02, 0.98) * p5.width;
+                const y1 = p5.random(0.02, 0.98) * p5.height;
+
+                brushstrokeRectangle({
+                    p5: p5,
+                    color: p5.color(
+                        Palettes[selectedPalette].colorsB[
+                            Math.floor(
+                                p5.random(
+                                    0,
+                                    Palettes[selectedPalette].colorsB.length
+                                )
+                            )
+                        ].color
+                    ),
+                    x1: x1,
+                    y1: y1,
+                    x2: x1 + p5.random(u(3), u(10)),
+                    y2: y1 + p5.random(u(3), u(10)),
+                    brushProps: {
+                        brushPositionRandomness: u(1),
+                        brushSizeRandomness: 0,
+
+                        brushSize: u(3),
+                        brushStippleSize: u(1),
+                        stipplePositionRandomness: u(2),
+                        stippleSizeRandomness: 0,
+                    },
+                });
+            }
+
+            for (let i = 0; i < 10; i++) {
+                const x1 = p5.random(0.02, 0.98) * p5.width;
+                const y1 = p5.random(0.02, 0.98) * p5.height;
+
+                brushstrokeRectangle({
+                    p5: p5,
+                    color: p5.color("#666666"),
+                    x1: x1,
+                    y1: y1,
+                    x2: x1 + p5.random(u(10), u(45)),
+                    y2: y1 + p5.random(u(1), u(3)),
+                    brushProps: {
+                        brushPositionRandomness: u(1),
+                        brushSizeRandomness: 0,
+
+                        brushSize: u(2),
+                        brushStippleSize: u(0.5),
+                        stipplePositionRandomness: u(2),
+                        stippleSizeRandomness: 0,
+                    },
+                });
+            }
+
+            for (let i = 0; i < 200; i++) {
+                const x1 = p5.noise(i) * p5.width;
+                const y1 = p5.noise(3 * i) * p5.height;
+
+                brushstrokePencil({
+                    p5: p5,
+                    color: p5.color("#222222"),
+                    x: x1,
+                    y: y1,
+
+                    brushSize: u(p5.random(0.1, 3)),
+                    density: p5.random(0.4, 0.9),
+                    stippleSize: u(0.4),
+                    stipplePositionRandomness: u(2),
+                    stippleSizeRandomness: 0,
+                });
+            }
+
+            rectanglesDrawn = true;
         }
     };
 

@@ -40,19 +40,23 @@ const Palettes: PaletteType[] = [
         accent: "#922f54",
         name: "Dahlia",
 
-        colors: [
-            [
-                { color: "#d0c66d", opacity: 1 },
-                { color: "#d24b64", opacity: 1 },
-                { color: "#574D62", opacity: 1 },
-                { color: "#4badc3", opacity: 1 },
-            ],
-            [
-                { color: "#D7481B", opacity: 1 },
-                { color: "#8e1f48", opacity: 1 },
-                { color: "#3c2c68", opacity: 1 },
-                { color: "#284a71", opacity: 1 },
-            ],
+        colorsA: [
+            { color: "#d0c66d", opacity: 1 },
+            { color: "#d24b64", opacity: 1 },
+            { color: "#574D62", opacity: 1 },
+            { color: "#4badc3", opacity: 1 },
+        ],
+        colorsB: [
+            { color: "#E58263", opacity: 1 },
+            { color: "#C32E51", opacity: 1 },
+            { color: "#524576", opacity: 1 },
+            { color: "#2A6D93", opacity: 1 },
+        ],
+        colorsC: [
+            { color: "#D7481B", opacity: 1 },
+            { color: "#8e1f48", opacity: 1 },
+            { color: "#3c2c68", opacity: 1 },
+            { color: "#284a71", opacity: 1 },
         ],
     },
 
