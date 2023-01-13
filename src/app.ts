@@ -1,6 +1,7 @@
 import P5 from "p5";
 import { LineAgent, RectangleStripAgent } from "./agents";
 import noiseColor from "./assets/images/noise-color.png";
+import noiseMono from "./assets/images/noise-mono.png";
 import Palettes from "./assets/palettes";
 import { mapGradient } from "./utils/common";
 import { brushstrokePencil, brushstrokeRectangle } from "./utils/p5utils";
@@ -21,7 +22,25 @@ export function u(x: number) {
 }
 
 const sketch = (p5: P5) => {
-    const seed = Math.random() * 1000000000000000;
+    const seed = Math.floor(Math.random() * 1000000000000000).toString();
+    const htmlseed = document.getElementById("seed");
+    if (htmlseed) {
+        htmlseed.innerHTML = seed;
+    }
+
+    //set seed in store
+    store.setState({ seed: seed });
+
+    const charA = parseInt(seed[0] + seed[1]);
+    const charB = parseInt(seed[2] + seed[3]);
+    const charC = parseInt(seed[4] + seed[5]);
+    const charD = parseInt(seed[6] + seed[7]);
+    const charE = parseInt(seed[8] + seed[9]);
+    const charF = parseInt(seed[10] + seed[11]);
+    const charG = parseInt(seed[12] + seed[13]);
+    const charH = parseInt(seed[14] + seed[15]);
+
+    const linesDirection = charA > 50 ? "down-right" : "up-right";
 
     var colors = [
         "#5949c1",
@@ -33,6 +52,9 @@ const sketch = (p5: P5) => {
         "#4fd2de",
         "#0aa4f7",
     ].map((c) => p5.color(c));
+
+    console.log("colors", colors);
+    console.log("color1 ", colors[0].toString());
 
     const gradient = mapGradient(
         colors.map((c) => {
@@ -62,9 +84,11 @@ const sketch = (p5: P5) => {
         stripAgents = stripAgents.filter((a) => a !== agent);
     }
 
-    let noiseImg: P5.Image;
+    let noiseImgColor: P5.Image;
+    let noiseImgMono: P5.Image;
     p5.preload = () => {
-        noiseImg = p5.loadImage(noiseColor);
+        noiseImgColor = p5.loadImage(noiseColor);
+        noiseImgMono = p5.loadImage(noiseMono);
     };
 
     p5.setup = () => {
@@ -78,6 +102,16 @@ const sketch = (p5: P5) => {
             p5.color(Palettes[selectedPalette].background).toString()
         );
 
+        //blend mode
+        p5.blendMode(p5.OVERLAY);
+
+        //image opacity
+        p5.tint(255, 0.2);
+
+        //image
+        p5.image(noiseImgMono, 0, 0, p5.width, p5.height);
+        console.log("added noise setup");
+
         for (let i = 0; i < nLineAgents; i++) {
             let colors = (
                 lineAgents.length % 3 === 0
@@ -87,13 +121,20 @@ const sketch = (p5: P5) => {
                     : Palettes[selectedPalette].colorsC
             ).map((c) => p5.color(c.color));
 
+            const x0 = p5.width * p5.random(-0.15, 0.3);
+            const y0 =
+                linesDirection === "down-right"
+                    ? p5.height * p5.random(-0.15, 0)
+                    : p5.height * p5.random(1, 1.15);
+
             lineAgents.push(
                 new LineAgent({
                     p5: p5,
-                    x0: p5.width * p5.random(-0.15, 0.3),
-                    y0: p5.height * p5.random(-0.15, 0),
+                    x0: x0,
+                    y0: y0,
                     seed: p5.frameCount.toString() + i.toString(),
                     direction: 1,
+                    linesDirection: linesDirection,
                     agentIndex: lineAgents.length,
                     colors: colors,
                     removeAgent: removeAgent,
@@ -114,11 +155,12 @@ const sketch = (p5: P5) => {
 
                     x2: x + width,
                     y2: p5.height - u(20),
-                    padding: u(20),
+                    padding: u(17),
                     direction: "vertical",
                     rectangleCount: count,
                     rectangleProps: {
-                        color: p5.color("#ccb"),
+                        // color: p5.color("#ccb"),
+                        color: p5.color("#f7f7f7"),
                         width: u(100),
                         height: u(50),
 
@@ -137,31 +179,35 @@ const sketch = (p5: P5) => {
                 })
             );
         }
-
-        //blend mode
-        p5.blendMode(p5.OVERLAY);
-
-        //image opacity
-        p5.tint(255, 0.1);
-
-        //image
-        p5.image(noiseImg, 0, 0, p5.width, p5.height);
     };
 
     p5.draw = () => {
-        if (p5.frameCount > 5000) {
+        if (
+            p5.frameCount > 5000 ||
+            (stripAgents.length === 0 && lineAgents.length === 0)
+        ) {
+            //blend mode
+            p5.blendMode(p5.OVERLAY);
+
+            //image opacity
+            p5.tint(255, 0.12);
+
+            //image
+            // p5.image(noiseImg, 0, 0, p5.width, p5.height);
+            // console.log("added noise");
+
             p5.noLoop();
         }
 
-        const sortedAgents = lineAgents.sort((a, b) => a.layer - b.layer);
+        const sortedLineAgents = lineAgents.sort((a, b) => a.layer - b.layer);
 
         for (let i = 0; i < stripAgents.length; i++) {
             stripAgents[i].update();
         }
 
         if (stripAgents.length === 0) {
-            for (let i = 0; i < sortedAgents.length; i++) {
-                sortedAgents[i].update();
+            for (let i = 0; i < sortedLineAgents.length; i++) {
+                sortedLineAgents[i].update();
             }
         }
 
@@ -182,18 +228,21 @@ const sketch = (p5: P5) => {
                             )
                         ].color
                     ),
+                    hueRandomness: 0.1,
+                    valueRandomness: 0.1,
                     x1: x1,
                     y1: y1,
                     x2: x1 + p5.random(u(3), u(10)),
                     y2: y1 + p5.random(u(3), u(10)),
                     brushProps: {
+                        brushType: "paintDrop",
                         brushPositionRandomness: u(1),
                         brushSizeRandomness: 0,
 
                         brushSize: u(3),
                         brushStippleSize: u(1),
                         stipplePositionRandomness: u(2),
-                        stippleSizeRandomness: 0,
+                        stippleSizeRandomness: u(1),
                     },
                 });
             }
@@ -204,7 +253,7 @@ const sketch = (p5: P5) => {
 
                 brushstrokeRectangle({
                     p5: p5,
-                    color: p5.color("#666666"),
+                    color: p5.color("#777777"),
                     x1: x1,
                     y1: y1,
                     x2: x1 + p5.random(u(10), u(45)),
@@ -215,8 +264,8 @@ const sketch = (p5: P5) => {
 
                         brushSize: u(2),
                         brushStippleSize: u(0.5),
-                        stipplePositionRandomness: u(2),
-                        stippleSizeRandomness: 0,
+                        stipplePositionRandomness: u(6),
+                        stippleSizeRandomness: u(1),
                     },
                 });
             }
@@ -234,7 +283,7 @@ const sketch = (p5: P5) => {
                     brushSize: u(p5.random(0.1, 3)),
                     density: p5.random(0.4, 0.9),
                     stippleSize: u(0.4),
-                    stipplePositionRandomness: u(2),
+                    stipplePositionRandomness: u(8),
                     stippleSizeRandomness: 0,
                 });
             }

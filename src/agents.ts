@@ -8,6 +8,7 @@ import {
     brushstrokePencil,
     brushstrokeRectangle,
     getVectorIntensity,
+    linesRectangle,
     vector_field,
 } from "./utils/p5utils";
 import { getState } from "./store";
@@ -169,22 +170,48 @@ export class RectangleStripAgent {
                     ) + randY;
 
                 p5.fill(color);
-                brushstrokeRectangle({
+                // brushstrokeRectangle({
+                //     p5: p5,
+                //     color: color,
+                //     hueRandomness: 0.02,
+                //     valueRandomness: 0.02,
+                //     x1: x,
+                //     y1: y,
+                //     x2: x + rectWidth,
+                //     y2: y + rectHeight,
+
+                //     blendMode: p5.BLEND,
+
+                //     brushProps: {
+                //         // brushType: "paintDrop",
+
+                //         brushPositionRandomness: brushPositionRandomness,
+                //         brushSizeRandomness: brushSizeRandomness,
+
+                //         brushSize: brushScale ?? 10,
+                //         brushStippleSize: brushStippleSize ?? 2,
+
+                //         stipplePositionRandomness: brushStippleRandomness,
+                //         stippleSizeRandomness: brushStippleRandomness,
+                //     },
+                // });
+
+                linesRectangle({
                     p5: p5,
                     color: color,
+                    hueRandomness: 0.02,
+                    valueRandomness: 0.02,
                     x1: x,
                     y1: y,
                     x2: x + rectWidth,
                     y2: y + rectHeight,
-                    brushProps: {
-                        brushPositionRandomness: brushPositionRandomness,
-                        brushSizeRandomness: brushSizeRandomness,
 
-                        brushSize: brushScale ?? 10,
-                        brushStippleSize: brushStippleSize ?? 2,
+                    blendMode: p5.MULTIPLY,
 
-                        stipplePositionRandomness: brushStippleRandomness,
-                        stippleSizeRandomness: brushStippleRandomness,
+                    lineProps: {
+                        density: 0.7,
+                        lineWeight: u(0.5),
+                        positionRandomness: 0.05,
                     },
                 });
 
@@ -220,22 +247,45 @@ export class RectangleStripAgent {
                         : 0) +
                     randY;
 
-                brushstrokeRectangle({
+                // brushstrokeRectangle({
+                //     p5: p5,
+                //     color: color,
+                //     x1: x,
+                //     y1: y,
+                //     x2: x + width,
+                //     y2: y + height,
+
+                //     blendMode: p5.BLEND,
+
+                //     brushProps: {
+                //         // brushType: "paintDrop",
+
+                //         brushPositionRandomness: brushPositionRandomness,
+                //         brushSizeRandomness: brushSizeRandomness,
+
+                //         brushSize: brushScale ?? 10,
+                //         brushStippleSize: brushStippleSize ?? 2,
+
+                //         stipplePositionRandomness: brushStippleRandomness,
+                //         stippleSizeRandomness: brushStippleRandomness,
+                //     },
+                // });
+
+                linesRectangle({
                     p5: p5,
                     color: color,
+                    hueRandomness: 0.02,
+                    valueRandomness: 0.02,
                     x1: x,
                     y1: y,
                     x2: x + width,
                     y2: y + height,
-                    brushProps: {
-                        brushPositionRandomness: brushPositionRandomness,
-                        brushSizeRandomness: brushSizeRandomness,
+                    blendMode: p5.MULTIPLY,
 
-                        brushSize: brushScale ?? 10,
-                        brushStippleSize: brushStippleSize ?? 2,
-
-                        stipplePositionRandomness: brushStippleRandomness,
-                        stippleSizeRandomness: brushStippleRandomness,
+                    lineProps: {
+                        density: 0.7,
+                        lineWeight: u(0.5),
+                        positionRandomness: 0.05,
                     },
                 });
 
@@ -254,6 +304,7 @@ export class LineAgent {
     agentIndex: number;
     p: P5.Vector;
     direction: number;
+    linesDirection: "down-right" | "up-right";
     colors: P5.Color[];
     scale: number;
     strokeWidth: number;
@@ -274,16 +325,27 @@ export class LineAgent {
         seed: string;
         layer?: number;
         direction?: number;
+        linesDirection: "down-right" | "up-right";
         agentIndex?: number;
         colors?: P5.Color[];
         removeAgent: (agent: LineAgent) => void;
     }) {
-        const { p5, x0, y0, seed, direction, agentIndex, colors, layer } =
-            params;
+        const {
+            p5,
+            x0,
+            y0,
+            seed,
+            direction,
+            agentIndex,
+            colors,
+            linesDirection,
+            layer,
+        } = params;
         this.p5 = p5;
         this.agentIndex = agentIndex ?? 0;
         this.p = p5.createVector(x0, y0);
         this.direction = direction ?? 1;
+        this.linesDirection = linesDirection;
         this.colors = colors ?? [p5.color("#000")];
         this.scale = p5.random(1, 10);
         this.strokeWidth = u(13) + u(3) * p5.sin(p5.frameCount);
@@ -316,6 +378,7 @@ export class LineAgent {
             this.p.x,
             this.p.y,
             this.scale,
+            this.linesDirection,
             this.seed
         );
 
@@ -394,6 +457,10 @@ export class LineAgent {
                 },
                 brushType: "random",
                 colors: this.colors,
+
+                hueRandomness: 0.04,
+                valueRandomness: 0.04,
+                stippleSizeRandomness: 0.5,
 
                 frameCount: p5.frameCount,
                 directionAngle: angleFromVector(vector),

@@ -944,12 +944,12 @@ export const addBrightness = (hexColor: string, amount: number) => {
     return rgbToHex(r, g, b);
 };
 
-export const addHSB = (hexColor: string, h: number, s: number, br: number) => {
+export const addHSV = (hexColor: string, h: number, s: number, v: number) => {
     const colorRgb = hexToRgb(hexColor);
     const [hsvH, hsvS, hsvV] = rgbToHsv(colorRgb.r, colorRgb.g, colorRgb.b);
     let newH = hsvH + h;
     let newS = hsvS + s;
-    let newV = hsvV + br;
+    let newV = hsvV + v;
 
     if (newH > 1) {
         while (newH > 1) {
@@ -970,4 +970,46 @@ export const addHSB = (hexColor: string, h: number, s: number, br: number) => {
 
     const [r, g, b] = hsvToRgb(newH, newS, newV);
     return rgbToHex(r, g, b);
+};
+
+export const rgbaCodeToRgb = (rgbaCode: string) => {
+    const rgba = rgbaCode.replace("rgba(", "").replace(")", "").split(",");
+    return {
+        r: parseInt(rgba[0], 10),
+        g: parseInt(rgba[1], 10),
+        b: parseInt(rgba[2], 10),
+    };
+};
+
+export const addHSVToRGBACode = (
+    rgbaCode: string,
+    h: number,
+    s: number,
+    br: number
+) => {
+    const colorRgb = rgbaCodeToRgb(rgbaCode);
+    const [hsvH, hsvS, hsvV] = rgbToHsv(colorRgb.r, colorRgb.g, colorRgb.b);
+    let newH = roundDecimals(hsvH + h, 3);
+    let newS = roundDecimals(hsvS + s, 3);
+    let newV = roundDecimals(hsvV + br, 3);
+
+    if (newH > 1) {
+        while (newH > 1) {
+            newH -= 1;
+        }
+    }
+    if (newH < 0) {
+        while (newH < 0) {
+            newH += 1;
+        }
+    }
+
+    if (newS > 1) newS = 1;
+    if (newS < 0) newS = 0;
+
+    if (newV > 1) newV = 1;
+    if (newV < 0) newV = 0;
+
+    const [r, g, b] = hsvToRgb(newH, newS, newV);
+    return rgbToHex(Math.floor(r), Math.floor(g), Math.floor(b));
 };

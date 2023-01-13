@@ -1,6 +1,69 @@
 import P5 from "p5";
 import { u } from "../app";
-import { calculatePointFromAngle, sr, srExtra, srn, srnExtra } from "./common";
+import {
+    addHSVToRGBACode,
+    calculatePointFromAngle,
+    hexToRgb,
+    hsvToRgb,
+    rgbToHsv,
+    sr,
+    srExtra,
+    srn,
+    srnExtra,
+} from "./common";
+
+export const paintDrop = (params: {
+    p5: P5;
+    x: number;
+    y: number;
+
+    color: P5.Color;
+    brushSize: number;
+
+    mode?: P5.BLEND_MODE;
+
+    steps?: number;
+    sides?: number;
+    variance?: number;
+    opacity?: number;
+}) => {
+    const { p5, x, y, brushSize, sides, variance, opacity, mode } = params;
+    const sidesToUse = sides || 24;
+    const varianceToUse = variance || 0.5;
+    const opacityToUse = opacity && opacity >= 0 && opacity <= 1 ? opacity : 1;
+    const stepsToUse = params.steps || 24;
+
+    const angleStep = 6.28 / sidesToUse;
+
+    let colorToUse = params.color;
+    const opacityStep = opacityToUse * (1 / stepsToUse);
+    // console.log("muie:", opacityStep);
+
+    colorToUse.setAlpha(opacityStep);
+
+    // console.log("lalala:", colorToUse);
+
+    for (let j = 0; j < stepsToUse; j++) {
+        p5.beginShape();
+        for (let i = 0; i < sidesToUse; i++) {
+            const angle = i * angleStep;
+            const rand = srnExtra(x + y, i.toString() + p5.frameCount);
+            const distance = brushSize * (1 + rand * varianceToUse);
+            const point = calculatePointFromAngle({
+                angle: angle,
+                distance: distance,
+                mode: "radians",
+                originX: x,
+                originY: y,
+            });
+            p5.vertex(point.x, point.y);
+        }
+        p5.endShape(p5.CLOSE);
+
+        p5.blendMode(mode || p5.BLEND);
+        p5.fill(colorToUse);
+    }
+};
 
 export function brushstrokePencil(params: {
     p5: P5;
@@ -10,6 +73,10 @@ export function brushstrokePencil(params: {
     stippleSize: number;
     density: number;
     color: P5.Color;
+
+    hueRandomness?: number;
+    valueRandomness?: number;
+
     stipplePositionRandomness?: number;
     stippleSizeRandomness?: number;
 }) {
@@ -30,6 +97,20 @@ export function brushstrokePencil(params: {
     for (let i = 0; i < stippleRows / 2; i++) {
         const stipplesInRow = Math.floor(2 * Math.PI * i);
         const angleStep = 6.28 / stipplesInRow;
+
+        let h =
+            params.hueRandomness === 0 || params.hueRandomness === undefined
+                ? 0
+                : srnExtra(x + y, x.toString() + i) * params.hueRandomness;
+        let v =
+            params.valueRandomness === 0 || params.valueRandomness === undefined
+                ? 0
+                : srnExtra(x + y, x.toString() + i) * params.valueRandomness;
+
+        const c =
+            h === 0 && v === 0
+                ? color
+                : p5.color(addHSVToRGBACode(color.toString(), h, 0, v));
 
         for (let j = 0; j < stipplesInRow; j++) {
             if (sr(i.toString() + j.toString() + p5.frameCount) > density)
@@ -60,7 +141,7 @@ export function brushstrokePencil(params: {
 
             const thisStippleSize = stippleSize + randSize;
 
-            p5.fill(color);
+            p5.fill(c);
             p5.noStroke();
             p5.ellipse(stippleX, stippleY, thisStippleSize, thisStippleSize);
         }
@@ -146,16 +227,33 @@ export function brushstrokeLine(brushParams: {
     y: number;
     brushType: "random";
     colors: P5.Color[];
+
     frameCount: number;
     brushProps: {
         brushStrokeWidth: number;
         stipplePositionRandomness?: number;
     };
+
+    hueRandomness?: number;
+    valueRandomness?: number;
+    stippleSizeRandomness?: number;
+
     drip?: number;
     directionAngle?: number;
 }) {
-    let { p5, x, y, brushType, colors, frameCount, directionAngle, drip } =
-        brushParams;
+    let {
+        p5,
+        x,
+        y,
+        brushType,
+        colors,
+        frameCount,
+        directionAngle,
+        drip,
+        hueRandomness,
+        valueRandomness,
+        stippleSizeRandomness,
+    } = brushParams;
 
     let { brushStrokeWidth, stipplePositionRandomness } =
         brushParams.brushProps;
@@ -196,6 +294,34 @@ export function brushstrokeLine(brushParams: {
                     (pStart.y * (steps - i - 1)) / steps +
                     (pEnd.y * (i + 1)) / steps;
 
+                let h =
+                    hueRandomness === 0 || hueRandomness === undefined
+                        ? 0
+                        : srnExtra(x + y, x.toString() + i) * hueRandomness;
+                let v =
+                    valueRandomness === 0 || valueRandomness === undefined
+                        ? 0
+                        : srnExtra(x + y, x.toString() + i) * valueRandomness;
+
+                let selectedColor =
+                    colors[
+                        Math.floor(
+                            sr(i.toString() + frameCount + i) * colors.length
+                        )
+                    ];
+
+                let c =
+                    h === 0 && v === 0
+                        ? selectedColor
+                        : p5.color(
+                              addHSVToRGBACode(
+                                  selectedColor.toString(),
+                                  h,
+                                  0,
+                                  v
+                              )
+                          );
+
                 if (stipplePositionRandomness !== undefined) {
                     const randX = srnExtra(x, x.toString() + p5.frameCount + i);
                     const randY = srnExtra(y, y.toString() + p5.frameCount + i);
@@ -227,27 +353,25 @@ export function brushstrokeLine(brushParams: {
                                 yEnd + offsetY
                             );
 
-                            p5.stroke(
-                                colors[
-                                    Math.floor(
-                                        sr(i.toString() + frameCount + i) *
-                                            colors.length
-                                    )
-                                ]
-                            );
+                            p5.stroke(c);
                         }
                     } else {
                         p5.line(xStart, yStart, xEnd, yEnd);
                     }
 
-                    p5.stroke(
-                        colors[
-                            Math.floor(
-                                sr(i.toString() + frameCount + i) *
-                                    colors.length
-                            )
-                        ]
-                    );
+                    if (stippleSizeRandomness !== undefined) {
+                        p5.strokeWeight(
+                            (brushStrokeWidth / steps) *
+                                (1 +
+                                    srnExtra(
+                                        x,
+                                        x.toString() + p5.frameCount + i
+                                    ) *
+                                        stippleSizeRandomness)
+                        );
+                    }
+
+                    p5.stroke(c);
                 }
             }
 
@@ -267,13 +391,28 @@ export const brushstrokeRectangle = (params: {
     y2: number;
 
     color: P5.Color;
+    hueRandomness?: number;
+    valueRandomness?: number;
+
+    blendMode?: P5.BLEND_MODE;
 
     brushProps?: BrushProps & {
+        brushType?: "pencil" | "paintDrop";
         brushPositionRandomness?: number;
         brushSizeRandomness?: number;
     };
 }) => {
-    const { p5, x1, y1, x2, y2, color } = params;
+    const {
+        p5,
+        x1,
+        y1,
+        x2,
+        y2,
+        color,
+        hueRandomness,
+        valueRandomness,
+        blendMode,
+    } = params;
     const {
         brushSize,
         brushStippleSize,
@@ -317,6 +456,7 @@ export const brushstrokeRectangle = (params: {
     for (let i = 0; i < brushRows * 2; i++) {
         for (let j = 0; j < brushColumns * 2; j++) {
             p5.blendMode(p5.BLEND);
+            p5.noStroke();
 
             const randX =
                 brushPositionRandomness !== 0
@@ -329,19 +469,152 @@ export const brushstrokeRectangle = (params: {
                       brushPositionRandomness
                     : 0;
 
-            brushstrokePencil({
-                p5: p5,
-                x: xStart + (j * bSize) / 2 + randX,
-                y: yStart + (i * bSize) / 2 + randY,
-                brushSize: bSize,
-                color: color,
-                stippleSize: bStippleSize,
-                stipplePositionRandomness: bStipplePositionRandomness,
-                stippleSizeRandomness: bStippleSizeRandomness,
-                density: 1,
-            });
+            switch (params.brushProps?.brushType) {
+                case "pencil":
+                default:
+                    brushstrokePencil({
+                        p5: p5,
+                        x: xStart + (j * bSize) / 2 + randX,
+                        y: yStart + (i * bSize) / 2 + randY,
+                        brushSize: bSize,
+                        color: color,
+
+                        hueRandomness: hueRandomness,
+                        valueRandomness: valueRandomness,
+
+                        stippleSize: bStippleSize,
+                        stipplePositionRandomness: bStipplePositionRandomness,
+                        stippleSizeRandomness: bStippleSizeRandomness,
+                        density: 1,
+                    });
+                    break;
+
+                case "paintDrop":
+                    paintDrop({
+                        p5: p5,
+                        x: xStart + (j * bSize) / 2 + randX,
+                        y: yStart + (i * bSize) / 2 + randY,
+                        brushSize: bSize,
+                        color: color,
+
+                        mode: blendMode,
+
+                        opacity: 0.2,
+                        sides: 24,
+                        steps: 24,
+                        variance: 0.5,
+                    });
+                    break;
+            }
         }
     }
+};
+
+export const linesRectangle = (params: {
+    p5: P5;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+
+    color: P5.Color;
+    hueRandomness?: number;
+    valueRandomness?: number;
+
+    blendMode?: P5.BLEND_MODE;
+
+    lineProps: {
+        lineWeight?: number;
+        density?: number;
+        positionRandomness?: number;
+    };
+}) => {
+    const {
+        p5,
+        x1,
+        y1,
+        x2,
+        y2,
+        color,
+        hueRandomness,
+        valueRandomness,
+        blendMode,
+    } = params;
+    const { lineWeight, density, positionRandomness } = params.lineProps ?? {};
+
+    const xStart = Math.min(x1, x2);
+    const xEnd = Math.max(x1, x2);
+
+    const yStart = Math.min(y1, y2);
+    const yEnd = Math.max(y1, y2);
+
+    let height = yEnd - yStart;
+    let width = xEnd - xStart;
+
+    const randHeight = (positionRandomness ?? 0) * height;
+    const randWidth = (positionRandomness ?? 0) * width;
+
+    let lWeight = lineWeight ?? Math.round(height / 100);
+    let lDensity = density ?? 0.5;
+
+    let lineCount = Math.floor(
+        Math.max(((height * width) / 10 / lWeight) * lDensity, 25)
+    );
+
+    p5.blendMode(blendMode ?? p5.BLEND);
+    p5.strokeWeight(lWeight);
+    p5.beginShape();
+
+    for (let i = 0; i < lineCount; i++) {
+        const targetSide = Math.floor(4 * srExtra(i, xStart.toString() + i));
+
+        let randX1 = srExtra(xStart + i, xStart.toString() + i) * width;
+        let randY1 = srExtra(xEnd + i, xEnd.toString() + i) * height;
+
+        let randX2 = srExtra(yStart + i + 1, yEnd.toString() + (i + 1)) * width;
+        let randY2 = srExtra(yEnd + 1, yStart.toString() + (i + 1)) * height;
+
+        const rheight = srnExtra(i, i) * randHeight;
+        const rwidth = srnExtra(i, i) * randWidth;
+
+        switch (targetSide) {
+            case 0:
+            default:
+                randX1 = 0 + rwidth;
+                break;
+            case 1:
+                randY1 = 0 + rheight;
+                break;
+            case 2:
+                randX1 = width + rwidth;
+                break;
+            case 3:
+                randY1 = height + rheight;
+                break;
+        }
+
+        // switch (targetSide) {
+        //     case 0:
+        //     default:
+        //         p5.line(xStart, yStart + randY1, xEnd, yStart + randY2);
+        //         break;
+
+        //     case 1:
+        //         p5.line(xStart + randX1, yStart, xStart + randX2, yEnd);
+        //         break;
+        // }
+
+        p5.line(
+            xStart + randX1,
+            yStart + randY1,
+            xStart + randX2,
+            yStart + randY2
+        );
+
+        p5.stroke(color);
+    }
+
+    p5.endShape();
 };
 
 export const rectangleStrip = (params: {
@@ -506,6 +779,7 @@ export function vector_field(
     x: number,
     y: number,
     myScale: number,
+    direction: "down-right" | "up-right",
     seed?: string
 ) {
     x = p5.map(x, 0, p5.width, -myScale, myScale);
@@ -526,7 +800,7 @@ export function vector_field(
         (p5.noise(x, y) - 0.5) * 4;
 
     let vectorY =
-        1 +
+        (direction === "down-right" ? 1 : -1) +
         p5.cos(srExtra(2, s) * 100 + p5.frameCount * 0.04 * srExtra(3, s)) *
             0.8 *
             srExtra(4, s) +

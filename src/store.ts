@@ -1,6 +1,8 @@
 import create from "zustand/vanilla";
 
 type Store = {
+    seed: string;
+
     canvasWidth: number;
     canvasHeight: number;
 
@@ -8,6 +10,8 @@ type Store = {
 };
 
 export const store = create<Store>((set) => ({
+    seed: "0123456789012345",
+
     canvasWidth: 1000,
     canvasHeight: 1200,
 
