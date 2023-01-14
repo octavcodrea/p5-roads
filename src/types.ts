@@ -13,4 +13,5 @@ export type PaletteType = {
     colorsA: ColorObject[];
     colorsB: ColorObject[];
     colorsC: ColorObject[];
+    colorsD: ColorObject[];
 };

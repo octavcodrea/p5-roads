@@ -13,7 +13,10 @@ import {
 } from "./utils/p5utils";
 import { getState } from "./store";
 
-const selectedPalette = getState().selectedPalette;
+let selectedPalette = 0;
+setTimeout(() => {
+    selectedPalette = getState().selectedPalette;
+}, 500);
 
 export class RectangleStripAgent {
     p5: P5;
@@ -366,6 +369,8 @@ export class LineAgent {
             this.type = "pen";
         } else if (this.agentIndex % 15 === 2) {
             this.type = "dashed-line";
+        } else if (this.agentIndex % 15 === 3) {
+            this.type = "circles";
         } else {
             this.layer = +(this.agentIndex + 3);
         }
@@ -441,6 +446,21 @@ export class LineAgent {
 
                 p5.stroke(p5.color("#444"));
                 p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
+            }
+        } else if (this.type === "circles") {
+            if ((p5.frameCount * 0.05) % 2 === 0) {
+                //blend mode
+                p5.blendMode(p5.DARKEST);
+
+                this.strokeWidth = this.strokeWidth * p5.random(0.95, 1.05);
+                p5.strokeWeight(this.strokeWidth / p5.random(7, 20));
+
+                p5.stroke(p5.color("#666"));
+                p5.noFill();
+
+                const thisSize = this.strokeWidth * p5.random(0.6, 1.4);
+
+                p5.ellipse(this.p.x, this.p.y, thisSize, thisSize);
             }
         } else {
             p5.blendMode(p5.BLEND);

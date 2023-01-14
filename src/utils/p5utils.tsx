@@ -321,6 +321,9 @@ export function brushstrokeLine(brushParams: {
                                   v
                               )
                           );
+                p5.blendMode(p5.BLEND);
+
+                p5.stroke(c);
 
                 if (stipplePositionRandomness !== undefined) {
                     const randX = srnExtra(x, x.toString() + p5.frameCount + i);
@@ -352,8 +355,6 @@ export function brushstrokeLine(brushParams: {
                                 xEnd + offsetX,
                                 yEnd + offsetY
                             );
-
-                            p5.stroke(c);
                         }
                     } else {
                         p5.line(xStart, yStart, xEnd, yEnd);
@@ -370,8 +371,6 @@ export function brushstrokeLine(brushParams: {
                                         stippleSizeRandomness)
                         );
                     }
-
-                    p5.stroke(c);
                 }
             }
 
@@ -818,3 +817,30 @@ export function vector_field(
 export const getVectorIntensity = (vector: P5.Vector) => {
     return Math.sqrt(vector.x ** 2 + vector.y ** 2);
 };
+
+// export const polygonFromLine = (params: {
+//     p5: P5;
+//     x1: number;
+//     y1: number;
+//     x2: number;
+//     y2: number;
+//     width: number;
+//     color: string;
+//     sides?: number;
+//     steps?: number;
+//     randomness?: number;
+// }) => {
+//     const {
+//         p5,
+//         x1,
+//         y1,
+//         x2,
+//         y2,
+//         width,
+//         color,
+//         sides = 3,
+//         steps = 10,
+//         randomness = 0,
+//     } = params;
+
+// }

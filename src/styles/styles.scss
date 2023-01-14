@@ -4,6 +4,8 @@ body {
     display: flex;
     height: 100vh;
     margin: 0;
+
+    font-family: "Courier New", Courier, monospace;
 }
 
 .container {
@@ -13,4 +15,16 @@ body {
     canvas {
         border: 1px solid #777;
     }
+
+    #menu {
+        margin-left: 20px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #777;
+    }
+}
+
+.mt-20 {
+    margin-top: 20px;
 }

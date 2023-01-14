@@ -3,12 +3,12 @@ import { LineAgent, RectangleStripAgent } from "./agents";
 import noiseColor from "./assets/images/noise-color.png";
 import noiseMono from "./assets/images/noise-mono.png";
 import Palettes from "./assets/palettes";
-import { mapGradient } from "./utils/common";
+import { mapGradient, srExtra } from "./utils/common";
 import { brushstrokePencil, brushstrokeRectangle } from "./utils/p5utils";
 //import vanilla zustand store
 import { store } from "./store";
 
-const { canvasWidth, canvasHeight, selectedPalette } = store.getState();
+const { canvasWidth, canvasHeight } = store.getState();
 
 const unit = canvasWidth / 1000;
 
@@ -41,6 +41,9 @@ const sketch = (p5: P5) => {
     const charH = parseInt(seed[14] + seed[15]);
 
     const linesDirection = charA > 50 ? "down-right" : "up-right";
+    const selectedPalette = Math.floor(Palettes.length * (charD / 100));
+
+    store.setState({ selectedPalette: selectedPalette });
 
     var colors = [
         "#5949c1",
@@ -67,12 +70,11 @@ const sketch = (p5: P5) => {
         "hex"
     );
 
-    var nLineAgents = 50;
+    var nLineAgents = 50 + Math.floor(charB / 2);
     var nStripAgents = 9;
 
     let lineAgents: LineAgent[] = [];
     let stripAgents: RectangleStripAgent[] = [];
-    let selectedPalette = 0;
 
     let rectanglesDrawn = false;
 
@@ -89,6 +91,8 @@ const sketch = (p5: P5) => {
     p5.preload = () => {
         noiseImgColor = p5.loadImage(noiseColor);
         noiseImgMono = p5.loadImage(noiseMono);
+
+        store.setState({ selectedPalette: selectedPalette });
     };
 
     p5.setup = () => {
@@ -109,19 +113,30 @@ const sketch = (p5: P5) => {
         p5.tint(255, 0.2);
 
         //image
-        p5.image(noiseImgMono, 0, 0, p5.width, p5.height);
+        for (let i = 0; i < p5.width; i += noiseImgMono.width) {
+            for (let j = 0; j < p5.height; j += noiseImgMono.height) {
+                p5.image(noiseImgMono, i, j);
+            }
+        }
+
         console.log("added noise setup");
 
         for (let i = 0; i < nLineAgents; i++) {
             let colors = (
-                lineAgents.length % 3 === 0
+                lineAgents.length % 4 === 0
                     ? Palettes[selectedPalette].colorsA
-                    : lineAgents.length % 3 === 1
+                    : lineAgents.length % 4 === 1
                     ? Palettes[selectedPalette].colorsB
-                    : Palettes[selectedPalette].colorsC
+                    : lineAgents.length % 4 === 2
+                    ? Palettes[selectedPalette].colorsC
+                    : Palettes[selectedPalette].colorsD
             ).map((c) => p5.color(c.color));
 
-            const x0 = p5.width * p5.random(-0.15, 0.3);
+            // const x0 = p5.width * p5.random(-0.15, 0.3);
+            const x0 =
+                p5.width *
+                (0.3 -
+                    0.45 * srExtra(i, p5.frameCount.toString() + i.toString()));
             const y0 =
                 linesDirection === "down-right"
                     ? p5.height * p5.random(-0.15, 0)
@@ -132,7 +147,10 @@ const sketch = (p5: P5) => {
                     p5: p5,
                     x0: x0,
                     y0: y0,
-                    seed: p5.frameCount.toString() + i.toString(),
+                    seed: srExtra(
+                        2 * i,
+                        p5.frameCount.toString() + i.toString()
+                    ).toString(),
                     direction: 1,
                     linesDirection: linesDirection,
                     agentIndex: lineAgents.length,
@@ -193,8 +211,8 @@ const sketch = (p5: P5) => {
             p5.tint(255, 0.12);
 
             //image
-            // p5.image(noiseImg, 0, 0, p5.width, p5.height);
-            // console.log("added noise");
+            p5.image(noiseImgColor, 0, 0, p5.width, p5.height);
+            console.log("added noise");
 
             p5.noLoop();
         }

@@ -58,6 +58,74 @@ const Palettes: PaletteType[] = [
             { color: "#3c2c68", opacity: 1 },
             { color: "#284a71", opacity: 1 },
         ],
+        colorsD: [
+            { color: "#2B968F", opacity: 1 },
+            { color: "#27698E", opacity: 1 },
+            { color: "#851C3C", opacity: 1 },
+            { color: "#8C81A4", opacity: 1 },
+        ],
+    },
+
+    {
+        background: "#E4E4DD",
+        accent: "#255A8B",
+        name: "Cerulean",
+
+        colorsB: [
+            { color: "#46A2C0", opacity: 1 },
+            { color: "#72CFCF", opacity: 1 },
+            { color: "#58C0A7", opacity: 1 },
+            { color: "#FF6978", opacity: 1 },
+        ],
+        colorsC: [
+            { color: "#295A88", opacity: 1 },
+            { color: "#3097C2", opacity: 1 },
+            { color: "#2C968F", opacity: 1 },
+            { color: "#9F1B3A", opacity: 1 },
+        ],
+        colorsA: [
+            { color: "#91CED6", opacity: 1 },
+            { color: "#AFE3D7", opacity: 1 },
+            { color: "#A1D1B4", opacity: 1 },
+            { color: "#F8938D", opacity: 1 },
+        ],
+        colorsD: [
+            { color: "#EEAF66", opacity: 1 },
+            { color: "#C67344", opacity: 1 },
+            { color: "#BDA299", opacity: 1 },
+            { color: "#DB6262", opacity: 1 },
+        ],
+    },
+
+    {
+        background: "#E1C233",
+        accent: "#BC722D",
+        name: "Retro",
+
+        colorsA: [
+            { color: "#FF8C4B", opacity: 1 },
+            { color: "#DF404A", opacity: 1 },
+            { color: "#2897C2", opacity: 1 },
+            { color: "#7C9886", opacity: 1 },
+        ],
+        colorsB: [
+            { color: "#CE473E", opacity: 1 },
+            { color: "#9B223F", opacity: 1 },
+            { color: "#0C4F73", opacity: 1 },
+            { color: "#5D6C7A", opacity: 1 },
+        ],
+        colorsC: [
+            { color: "#F6A74B", opacity: 1 },
+            { color: "#E66857", opacity: 1 },
+            { color: "#78A782", opacity: 1 },
+            { color: "#A6B451", opacity: 1 },
+        ],
+        colorsD: [
+            { color: "#E7A33F", opacity: 1 },
+            { color: "#B1442C", opacity: 1 },
+            { color: "#475847", opacity: 1 },
+            { color: "#5C9599", opacity: 1 },
+        ],
     },
 
     // {
@@ -100,42 +168,6 @@ const Palettes: PaletteType[] = [
     //     ],
     // },
 
-    // {
-    //     background: "#004D94",
-    //     accent: "#130C42",
-    //     name: "Cerulean",
-
-    //     colorsA: [
-    //         { color: "#319AD6", opacity: 1 },
-    //         { color: "#9AE7D6", opacity: 1 },
-    //         { color: "#FCFCFD", opacity: 1 },
-    //         { color: "#FF6978", opacity: 1 },
-    //     ],
-    //     colorsB: [
-    //         { color: "#112968", opacity: 1 },
-    //         { color: "#165F7E", opacity: 1 },
-    //         { color: "#525E8A", opacity: 1 },
-    //         { color: "#9F1B3A", opacity: 1 },
-    //     ],
-    // },
-    // {
-    //     background: "#E1C233",
-    //     accent: "#BC722D",
-    //     name: "Retro",
-
-    //     colorsA: [
-    //         { color: "#FF8C4B", opacity: 1 },
-    //         { color: "#DF404A", opacity: 1 },
-    //         { color: "#2897C2", opacity: 1 },
-    //         { color: "#A2ADA6", opacity: 1 },
-    //     ],
-    //     colorsB: [
-    //         { color: "#891B14", opacity: 1 },
-    //         { color: "#891833", opacity: 1 },
-    //         { color: "#032B41", opacity: 1 },
-    //         { color: "#41505E", opacity: 1 },
-    //     ],
-    // },
     // // {
     // //     background: "#C5283D",
     // //     accent: "#FAE0E0",
