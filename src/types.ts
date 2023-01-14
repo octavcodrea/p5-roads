@@ -10,6 +10,9 @@ export type PaletteType = {
     accent: string;
     name?: string;
     blendMode?: GlobalCompositeOperation;
+
+    stripLinesColor: string;
+
     colorsA: ColorObject[];
     colorsB: ColorObject[];
     colorsC: ColorObject[];

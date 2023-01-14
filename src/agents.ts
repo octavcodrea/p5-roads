@@ -9,6 +9,7 @@ import {
     brushstrokeRectangle,
     getVectorIntensity,
     linesRectangle,
+    polygon,
     vector_field,
 } from "./utils/p5utils";
 import { getState } from "./store";
@@ -319,6 +320,10 @@ export class LineAgent {
     layer: number;
     type: string;
 
+    mode: "straight" | "smooth";
+    vector: P5.Vector;
+    vectorStep: number;
+
     removeAgent: (agent: LineAgent) => void;
 
     constructor(params: {
@@ -331,6 +336,7 @@ export class LineAgent {
         linesDirection: "down-right" | "up-right";
         agentIndex?: number;
         colors?: P5.Color[];
+        mode?: "straight" | "smooth";
         removeAgent: (agent: LineAgent) => void;
     }) {
         const {
@@ -357,6 +363,8 @@ export class LineAgent {
         this.layer = 0;
         this.type = "default";
 
+        this.mode = params.mode ?? "smooth";
+
         this.pOld = p5.createVector(this.p.x, this.p.y);
 
         this.step = 1;
@@ -374,11 +382,8 @@ export class LineAgent {
         } else {
             this.layer = +(this.agentIndex + 3);
         }
-    }
 
-    update() {
-        const { p5 } = this;
-        const vector = vector_field(
+        this.vector = vector_field(
             p5,
             this.p.x,
             this.p.y,
@@ -386,9 +391,36 @@ export class LineAgent {
             this.linesDirection,
             this.seed
         );
+        this.vectorStep = 10;
+    }
 
-        this.p.x += this.direction * vector.x * this.step;
-        this.p.y += this.direction * vector.y * this.step;
+    update() {
+        const { p5 } = this;
+        if (this.mode === "smooth") {
+            this.vector = vector_field(
+                p5,
+                this.p.x,
+                this.p.y,
+                this.scale,
+                this.linesDirection,
+                this.seed
+            );
+        } else {
+            if (Math.floor(p5.frameCount / this.vectorStep) % 2 === 0) {
+                this.vector = vector_field(
+                    p5,
+                    this.p.x,
+                    this.p.y,
+                    this.scale,
+                    this.linesDirection,
+                    this.seed
+                );
+                this.vectorStep = p5.random(10, 50);
+            }
+        }
+
+        this.p.x += this.direction * this.vector.x * this.step;
+        this.p.y += this.direction * this.vector.y * this.step;
 
         if (
             this.p.x >= p5.width * 1.2 ||
@@ -460,7 +492,21 @@ export class LineAgent {
 
                 const thisSize = this.strokeWidth * p5.random(0.6, 1.4);
 
-                p5.ellipse(this.p.x, this.p.y, thisSize, thisSize);
+                const xOffset = p5.random(-thisSize, thisSize);
+                const yOffset = p5.random(-thisSize, thisSize);
+
+                polygon({
+                    p5: p5,
+                    x: this.p.x + xOffset,
+                    y: this.p.y + yOffset,
+                    radius: thisSize,
+                    sides: 16,
+                    color: p5.color("#666"),
+                    stroke: true,
+                    fill: false,
+                    randomness: thisSize / 16,
+                    rotationInDeg: sr(this.p.x) * 180,
+                });
             }
         } else {
             p5.blendMode(p5.BLEND);
@@ -483,7 +529,7 @@ export class LineAgent {
                 stippleSizeRandomness: 0.5,
 
                 frameCount: p5.frameCount,
-                directionAngle: angleFromVector(vector),
+                directionAngle: angleFromVector(this.vector),
                 drip: 0.02,
             });
         }

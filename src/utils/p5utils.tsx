@@ -567,11 +567,14 @@ export const linesRectangle = (params: {
     for (let i = 0; i < lineCount; i++) {
         const targetSide = Math.floor(4 * srExtra(i, xStart.toString() + i));
 
-        let randX1 = srExtra(xStart + i, xStart.toString() + i) * width;
-        let randY1 = srExtra(xEnd + i, xEnd.toString() + i) * height;
+        let randX1 =
+            srExtra(xStart + i, xStart.toString() + i + yStart) * width;
+        let randY1 = srExtra(xEnd + i, xEnd.toString() + i + yEnd) * height;
 
-        let randX2 = srExtra(yStart + i + 1, yEnd.toString() + (i + 1)) * width;
-        let randY2 = srExtra(yEnd + 1, yStart.toString() + (i + 1)) * height;
+        let randX2 =
+            srExtra(yStart + i + 1, yEnd.toString() + (i + 1) + xStart) * width;
+        let randY2 =
+            srExtra(yEnd + 1, yStart.toString() + (i + 1) + xEnd) * height;
 
         const rheight = srnExtra(i, i) * randHeight;
         const rwidth = srnExtra(i, i) * randWidth;
@@ -844,3 +847,64 @@ export const getVectorIntensity = (vector: P5.Vector) => {
 //     } = params;
 
 // }
+
+export const polygon = (params: {
+    p5: P5;
+    x: number;
+    y: number;
+    radius: number;
+    sides: number;
+    color: P5.Color;
+    fill: boolean;
+    stroke: boolean;
+    rotationInDeg?: number;
+    randomness?: number;
+}) => {
+    const { p5, x, y, radius, sides, color, rotationInDeg, randomness } =
+        params;
+
+    p5.push();
+
+    p5.translate(x, y);
+    p5.angleMode(p5.DEGREES);
+    p5.rotate(rotationInDeg ?? 0);
+    p5.angleMode(p5.RADIANS);
+
+    if (params.stroke) {
+        p5.stroke(color);
+    } else {
+        p5.noStroke();
+    }
+
+    if (params.fill) {
+        p5.fill(color);
+    } else {
+        p5.noFill();
+    }
+
+    p5.beginShape();
+
+    for (let i = 0; i < sides; i++) {
+        const angle = p5.map(i, 0, sides, 0, p5.TWO_PI);
+
+        const randX =
+            randomness !== undefined
+                ? srn(x.toString() + i + y) * randomness
+                : 0;
+        const randY =
+            randomness !== undefined
+                ? srn(i + y.toString() + x) * randomness
+                : 0;
+
+        const sx = Math.floor((radius / 2) * p5.cos(angle) + randX);
+        const sy = Math.floor((radius / 2) * p5.sin(angle) + randY);
+
+        console.log(sx, sy);
+
+        p5.vertex(sx, sy);
+    }
+
+    p5.endShape(p5.CLOSE);
+
+    p5.pop();
+};

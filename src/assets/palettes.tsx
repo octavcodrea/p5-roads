@@ -38,6 +38,7 @@ const Palettes: PaletteType[] = [
     {
         background: "#DDDDCC",
         accent: "#922f54",
+        stripLinesColor: "#fbfbfb",
         name: "Dahlia",
 
         colorsA: [
@@ -70,6 +71,7 @@ const Palettes: PaletteType[] = [
         background: "#E4E4DD",
         accent: "#255A8B",
         name: "Cerulean",
+        stripLinesColor: "#fcfcfd",
 
         colorsB: [
             { color: "#46A2C0", opacity: 1 },
@@ -101,6 +103,7 @@ const Palettes: PaletteType[] = [
         background: "#E1C233",
         accent: "#BC722D",
         name: "Retro",
+        stripLinesColor: "#fefdfc",
 
         colorsA: [
             { color: "#FF8C4B", opacity: 1 },
@@ -115,13 +118,13 @@ const Palettes: PaletteType[] = [
             { color: "#5D6C7A", opacity: 1 },
         ],
         colorsC: [
-            { color: "#F6A74B", opacity: 1 },
-            { color: "#E66857", opacity: 1 },
-            { color: "#78A782", opacity: 1 },
-            { color: "#A6B451", opacity: 1 },
+            { color: "#E7932F", opacity: 1 },
+            { color: "#E25643", opacity: 1 },
+            { color: "#60A16E", opacity: 1 },
+            { color: "#96A347", opacity: 1 },
         ],
         colorsD: [
-            { color: "#E7A33F", opacity: 1 },
+            { color: "#E2992C", opacity: 1 },
             { color: "#B1442C", opacity: 1 },
             { color: "#475847", opacity: 1 },
             { color: "#5C9599", opacity: 1 },

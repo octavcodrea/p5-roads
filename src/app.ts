@@ -156,6 +156,7 @@ const sketch = (p5: P5) => {
                     agentIndex: lineAgents.length,
                     colors: colors,
                     removeAgent: removeAgent,
+                    mode: charC % 3 === 0 ? "straight" : "smooth",
                 })
             );
         }
@@ -178,7 +179,9 @@ const sketch = (p5: P5) => {
                     rectangleCount: count,
                     rectangleProps: {
                         // color: p5.color("#ccb"),
-                        color: p5.color("#f7f7f7"),
+                        color: p5.color(
+                            Palettes[selectedPalette].stripLinesColor
+                        ),
                         width: u(100),
                         height: u(50),
 
@@ -211,7 +214,12 @@ const sketch = (p5: P5) => {
             p5.tint(255, 0.12);
 
             //image
-            p5.image(noiseImgColor, 0, 0, p5.width, p5.height);
+            for (let i = 0; i < p5.width; i += noiseImgMono.width) {
+                for (let j = 0; j < p5.height; j += noiseImgMono.height) {
+                    p5.image(noiseImgColor, i, j);
+                }
+            }
+
             console.log("added noise");
 
             p5.noLoop();
