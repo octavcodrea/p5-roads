@@ -123,11 +123,11 @@ const sketch = (p5: P5) => {
 
         for (let i = 0; i < nLineAgents; i++) {
             let colors = (
-                lineAgents.length % 4 === 0
+                i % 4 === 0
                     ? Palettes[selectedPalette].colorsA
-                    : lineAgents.length % 4 === 1
+                    : i % 4 === 1
                     ? Palettes[selectedPalette].colorsB
-                    : lineAgents.length % 4 === 2
+                    : i % 4 === 2
                     ? Palettes[selectedPalette].colorsC
                     : Palettes[selectedPalette].colorsD
             ).map((c) => p5.color(c.color));

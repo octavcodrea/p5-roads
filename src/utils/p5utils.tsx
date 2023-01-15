@@ -44,6 +44,9 @@ export const paintDrop = (params: {
     // console.log("lalala:", colorToUse);
 
     for (let j = 0; j < stepsToUse; j++) {
+        p5.blendMode(mode || p5.BLEND);
+        p5.fill(colorToUse);
+
         p5.beginShape();
         for (let i = 0; i < sidesToUse; i++) {
             const angle = i * angleStep;
@@ -59,9 +62,6 @@ export const paintDrop = (params: {
             p5.vertex(point.x, point.y);
         }
         p5.endShape(p5.CLOSE);
-
-        p5.blendMode(mode || p5.BLEND);
-        p5.fill(colorToUse);
     }
 };
 
@@ -143,7 +143,18 @@ export function brushstrokePencil(params: {
 
             p5.fill(c);
             p5.noStroke();
-            p5.ellipse(stippleX, stippleY, thisStippleSize, thisStippleSize);
+            // p5.ellipse(stippleX, stippleY, thisStippleSize, thisStippleSize);
+            polygon({
+                p5: p5,
+                x: stippleX,
+                y: stippleY,
+                radius: thisStippleSize,
+                color: c,
+                sides: 8,
+                fill: true,
+                stroke: false,
+                randomness: thisStippleSize / 4,
+            });
         }
     }
 
@@ -898,8 +909,6 @@ export const polygon = (params: {
 
         const sx = Math.floor((radius / 2) * p5.cos(angle) + randX);
         const sy = Math.floor((radius / 2) * p5.sin(angle) + randY);
-
-        console.log(sx, sy);
 
         p5.vertex(sx, sy);
     }

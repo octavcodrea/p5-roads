@@ -2,36 +2,37 @@ import { PaletteType } from "../types";
 
 const Palettes: PaletteType[] = [
     // {
-    //     background: "#DDDDCC",
-    //     accent: "#333",
-
-    //     colorsA: [
-    //         { color: "#ddaa22", opacity: 1 },
-    //         { color: "#dd2244", opacity: 1 },
-    //         { color: "#221133", opacity: 1 },
-    //         { color: "#2299bb", opacity: 1 },
-    //     ],
-    //     colorsB: [
-    //         { color: "#dddd00", opacity: 1 },
-    //         { color: "#ff2222", opacity: 1 },
-    //         { color: "#22ffcc", opacity: 1 },
-    //     ],
-    // },
-
-    // {
     //     background: "#DADCE8",
+    //     accent: "#922f54",
+    //     stripLinesColor: "#fbfbfb",
+    //     name: "Dahlia",
     //     colorsA: [
-    //         { color: "#F83E69", opacity: 1 },
-    //         { color: "#BD7CF1", opacity: 1 },
-    //         { color: "#3C41B4", opacity: 1 },
-    //         { color: "#57DDB3", opacity: 1 },
-    //         // { color: "#B8D2E4", opacity: 1 },
+    //         { color: "#E28413", opacity: 1 },
+    //         { color: "#E4C94C", opacity: 1 },
+    //         { color: "#E4FDE1", opacity: 1 },
+    //         { color: "#BBA0CA", opacity: 1 },
+    //         { color: "#865AB6", opacity: 1 },
     //     ],
     //     colorsB: [
-    //         { color: "#FF9F9F", opacity: 1 },
+    //         { color: "#891833", opacity: 1 },
+    //         { color: "#D7481B", opacity: 1 },
+    //         { color: "#5273A5", opacity: 1 },
+    //         { color: "#4E46A3", opacity: 1 },
+    //         { color: "#39316D", opacity: 1 },
+    //     ],
+    //     colorsC: [
+    //         { color: "#FF698C", opacity: 1 },
+    //         { color: "#BD7CF1", opacity: 1 },
+    //         { color: "#555BEA", opacity: 1 },
+    //         { color: "#49D2A7", opacity: 1 },
+    //         { color: "#B8D2E4", opacity: 1 },
+    //     ],
+    //     colorsD: [
+    //         { color: "#DB004F", opacity: 1 },
     //         { color: "#643ED0", opacity: 1 },
-    //         { color: "#48445F", opacity: 1 },
-    //         { color: "#21AEEA", opacity: 1 },
+    //         { color: "#251F47", opacity: 1 },
+    //         { color: "#006895", opacity: 1 },
+    //         { color: "#5478AD", opacity: 1 },
     //     ],
     // },
 
@@ -67,69 +68,69 @@ const Palettes: PaletteType[] = [
         ],
     },
 
-    {
-        background: "#E4E4DD",
-        accent: "#255A8B",
-        name: "Cerulean",
-        stripLinesColor: "#fcfcfd",
+    // {
+    //     background: "#E4E4DD",
+    //     accent: "#255A8B",
+    //     name: "Cerulean",
+    //     stripLinesColor: "#fcfcfd",
 
-        colorsB: [
-            { color: "#46A2C0", opacity: 1 },
-            { color: "#72CFCF", opacity: 1 },
-            { color: "#58C0A7", opacity: 1 },
-            { color: "#FF6978", opacity: 1 },
-        ],
-        colorsC: [
-            { color: "#295A88", opacity: 1 },
-            { color: "#3097C2", opacity: 1 },
-            { color: "#2C968F", opacity: 1 },
-            { color: "#9F1B3A", opacity: 1 },
-        ],
-        colorsA: [
-            { color: "#91CED6", opacity: 1 },
-            { color: "#AFE3D7", opacity: 1 },
-            { color: "#A1D1B4", opacity: 1 },
-            { color: "#F8938D", opacity: 1 },
-        ],
-        colorsD: [
-            { color: "#EEAF66", opacity: 1 },
-            { color: "#C67344", opacity: 1 },
-            { color: "#BDA299", opacity: 1 },
-            { color: "#DB6262", opacity: 1 },
-        ],
-    },
+    //     colorsB: [
+    //         { color: "#46A2C0", opacity: 1 },
+    //         { color: "#72CFCF", opacity: 1 },
+    //         { color: "#58C0A7", opacity: 1 },
+    //         { color: "#FF6978", opacity: 1 },
+    //     ],
+    //     colorsC: [
+    //         { color: "#295A88", opacity: 1 },
+    //         { color: "#3097C2", opacity: 1 },
+    //         { color: "#2C968F", opacity: 1 },
+    //         { color: "#9F1B3A", opacity: 1 },
+    //     ],
+    //     colorsA: [
+    //         { color: "#91CED6", opacity: 1 },
+    //         { color: "#AFE3D7", opacity: 1 },
+    //         { color: "#A1D1B4", opacity: 1 },
+    //         { color: "#F8938D", opacity: 1 },
+    //     ],
+    //     colorsD: [
+    //         { color: "#EEAF66", opacity: 1 },
+    //         { color: "#C67344", opacity: 1 },
+    //         { color: "#BDA299", opacity: 1 },
+    //         { color: "#DB6262", opacity: 1 },
+    //     ],
+    // },
 
-    {
-        background: "#E1C233",
-        accent: "#BC722D",
-        name: "Retro",
-        stripLinesColor: "#fefdfc",
+    // {
+    //     background: "#E1C233",
+    //     accent: "#BC722D",
+    //     name: "Retro",
+    //     stripLinesColor: "#fefdfc",
 
-        colorsA: [
-            { color: "#FF8C4B", opacity: 1 },
-            { color: "#DF404A", opacity: 1 },
-            { color: "#2897C2", opacity: 1 },
-            { color: "#7C9886", opacity: 1 },
-        ],
-        colorsB: [
-            { color: "#CE473E", opacity: 1 },
-            { color: "#9B223F", opacity: 1 },
-            { color: "#0C4F73", opacity: 1 },
-            { color: "#5D6C7A", opacity: 1 },
-        ],
-        colorsC: [
-            { color: "#E7932F", opacity: 1 },
-            { color: "#E25643", opacity: 1 },
-            { color: "#60A16E", opacity: 1 },
-            { color: "#96A347", opacity: 1 },
-        ],
-        colorsD: [
-            { color: "#E2992C", opacity: 1 },
-            { color: "#B1442C", opacity: 1 },
-            { color: "#475847", opacity: 1 },
-            { color: "#5C9599", opacity: 1 },
-        ],
-    },
+    //     colorsA: [
+    //         { color: "#FF8C4B", opacity: 1 },
+    //         { color: "#DF404A", opacity: 1 },
+    //         { color: "#2897C2", opacity: 1 },
+    //         { color: "#7C9886", opacity: 1 },
+    //     ],
+    //     colorsB: [
+    //         { color: "#CE473E", opacity: 1 },
+    //         { color: "#9B223F", opacity: 1 },
+    //         { color: "#0C4F73", opacity: 1 },
+    //         { color: "#5D6C7A", opacity: 1 },
+    //     ],
+    //     colorsC: [
+    //         { color: "#E7932F", opacity: 1 },
+    //         { color: "#E25643", opacity: 1 },
+    //         { color: "#60A16E", opacity: 1 },
+    //         { color: "#96A347", opacity: 1 },
+    //     ],
+    //     colorsD: [
+    //         { color: "#E2992C", opacity: 1 },
+    //         { color: "#B1442C", opacity: 1 },
+    //         { color: "#475847", opacity: 1 },
+    //         { color: "#5C9599", opacity: 1 },
+    //     ],
+    // },
 
     // {
     //     background: "#C1C4D3",

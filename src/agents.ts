@@ -370,7 +370,7 @@ export class LineAgent {
         this.step = 1;
         this.removeAgent = params.removeAgent;
 
-        if (this.agentIndex % 4 === 0) {
+        if (this.agentIndex % 5 === 0) {
             this.type = "pencil";
             this.layer = +1;
         } else if (this.agentIndex % 15 === 1) {
@@ -480,7 +480,7 @@ export class LineAgent {
                 p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
             }
         } else if (this.type === "circles") {
-            if ((p5.frameCount * 0.05) % 2 === 0) {
+            if ((p5.frameCount * 0.1) % 2 === 0) {
                 //blend mode
                 p5.blendMode(p5.DARKEST);
 
@@ -490,7 +490,7 @@ export class LineAgent {
                 p5.stroke(p5.color("#666"));
                 p5.noFill();
 
-                const thisSize = this.strokeWidth * p5.random(0.6, 1.4);
+                const thisSize = (this.strokeWidth / 2) * p5.random(0.3, 1.4);
 
                 const xOffset = p5.random(-thisSize, thisSize);
                 const yOffset = p5.random(-thisSize, thisSize);
@@ -501,10 +501,10 @@ export class LineAgent {
                     y: this.p.y + yOffset,
                     radius: thisSize,
                     sides: 16,
-                    color: p5.color("#666"),
+                    color: p5.color("#999"),
                     stroke: true,
                     fill: false,
-                    randomness: thisSize / 16,
+                    randomness: thisSize / 64,
                     rotationInDeg: sr(this.p.x) * 180,
                 });
             }
