@@ -121,6 +121,8 @@ const sketch = (p5: P5) => {
 
         console.log("added noise setup");
 
+        const scale = 1;
+
         for (let i = 0; i < nLineAgents; i++) {
             let colors = (
                 i % 4 === 0
@@ -157,6 +159,7 @@ const sketch = (p5: P5) => {
                     colors: colors,
                     removeAgent: removeAgent,
                     mode: charC % 3 === 0 ? "straight" : "smooth",
+                    scale: scale,
                 })
             );
         }

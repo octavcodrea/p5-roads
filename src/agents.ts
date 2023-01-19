@@ -334,6 +334,7 @@ export class LineAgent {
         layer?: number;
         direction?: number;
         linesDirection: "down-right" | "up-right";
+        scale: number;
         agentIndex?: number;
         colors?: P5.Color[];
         mode?: "straight" | "smooth";
@@ -349,7 +350,9 @@ export class LineAgent {
             colors,
             linesDirection,
             layer,
+            scale,
         } = params;
+
         this.p5 = p5;
         this.agentIndex = agentIndex ?? 0;
         this.p = p5.createVector(x0, y0);
@@ -357,7 +360,7 @@ export class LineAgent {
         this.linesDirection = linesDirection;
         this.colors = colors ?? [p5.color("#000")];
         this.scale = p5.random(1, 10);
-        this.strokeWidth = u(13) + u(3) * p5.sin(p5.frameCount);
+        this.strokeWidth = (u(16) + u(6) * p5.sin(p5.frameCount)) * scale;
         this.seed = seed;
         this.colorIndex = 0;
         this.layer = 0;

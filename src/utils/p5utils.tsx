@@ -243,6 +243,7 @@ export function brushstrokeLine(brushParams: {
     brushProps: {
         brushStrokeWidth: number;
         stipplePositionRandomness?: number;
+        stippleScale?: number;
     };
 
     hueRandomness?: number;
@@ -266,11 +267,11 @@ export function brushstrokeLine(brushParams: {
         stippleSizeRandomness,
     } = brushParams;
 
-    let { brushStrokeWidth, stipplePositionRandomness } =
+    let { brushStrokeWidth, stipplePositionRandomness, stippleScale } =
         brushParams.brushProps;
 
     let angle = directionAngle ?? 0;
-    const steps = Math.max(10, brushStrokeWidth / u(2));
+    const steps = Math.min(10, brushStrokeWidth / u(2) / (stippleScale ?? 1));
 
     const pStart = calculatePointFromAngle({
         originX: x,
