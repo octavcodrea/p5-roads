@@ -1,5 +1,5 @@
 import P5 from "p5";
-import { LineAgent, RectangleStripAgent } from "./agents";
+import { LineAgent, RectangleStripAgent, TriangleStripAgent } from "./agents";
 import noiseColor from "./assets/images/noise-color.png";
 import noiseMono from "./assets/images/noise-mono.png";
 import Palettes from "./assets/palettes";
@@ -56,9 +56,6 @@ const sketch = (p5: P5) => {
         "#0aa4f7",
     ].map((c) => p5.color(c));
 
-    console.log("colors", colors);
-    console.log("color1 ", colors[0].toString());
-
     const gradient = mapGradient(
         colors.map((c) => {
             return {
@@ -72,9 +69,11 @@ const sketch = (p5: P5) => {
 
     var nLineAgents = 50 + Math.floor(charB / 2);
     var nStripAgents = 9;
+    var nTriangleAgents = 9;
 
     let lineAgents: LineAgent[] = [];
     let stripAgents: RectangleStripAgent[] = [];
+    let triangleAgents: TriangleStripAgent[] = [];
 
     let rectanglesDrawn = false;
 
@@ -84,6 +83,10 @@ const sketch = (p5: P5) => {
 
     function removeStripAgent(agent: RectangleStripAgent) {
         stripAgents = stripAgents.filter((a) => a !== agent);
+    }
+
+    function removeTriangleAgent(agent: TriangleStripAgent) {
+        triangleAgents = triangleAgents.filter((a) => a !== agent);
     }
 
     let noiseImgColor: P5.Image;
@@ -203,6 +206,42 @@ const sketch = (p5: P5) => {
                 })
             );
         }
+
+        for (let i = 0; i < nTriangleAgents; i++) {
+            const x = p5.width * p5.random(0.05, 0.8);
+            const count = Math.floor(p5.random(8, 20));
+            const width = u(70) * p5.random(0.05, 1);
+
+            triangleAgents.push(
+                new TriangleStripAgent({
+                    p5: p5,
+                    x1: x,
+                    y1: u(20) + p5.random(0, p5.height / 2),
+
+                    padding: u(17),
+                    direction: "vertical",
+                    triangleCount: count,
+                    triangleProps: {
+                        color: p5.color(
+                            Palettes[selectedPalette].colorsA[
+                                Math.floor(
+                                    p5.random(
+                                        0,
+                                        Palettes[selectedPalette].colorsA.length
+                                    )
+                                )
+                            ].color
+                        ),
+                        width: u(100),
+                        rotation: 0,
+                        trigPositionRandomness: u(2),
+                        trigSizeRandomness: 0,
+                    },
+
+                    removeAgent: removeTriangleAgent,
+                })
+            );
+        }
     };
 
     p5.draw = () => {
@@ -223,7 +262,7 @@ const sketch = (p5: P5) => {
                 }
             }
 
-            console.log("added noise");
+            console.log("added noise final");
 
             p5.noLoop();
         }
@@ -282,7 +321,7 @@ const sketch = (p5: P5) => {
 
                 brushstrokeRectangle({
                     p5: p5,
-                    color: p5.color("#777777"),
+                    color: p5.color(Palettes[selectedPalette].accentDark),
                     x1: x1,
                     y1: y1,
                     x2: x1 + p5.random(u(10), u(45)),
@@ -318,6 +357,12 @@ const sketch = (p5: P5) => {
             }
 
             rectanglesDrawn = true;
+        }
+
+        if (rectanglesDrawn === true) {
+            for (let i = 0; i < triangleAgents.length; i++) {
+                triangleAgents[i].update();
+            }
         }
     };
 

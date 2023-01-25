@@ -1,7 +1,7 @@
 import P5 from "p5";
 import { u } from "./app";
 import Palettes from "./assets/palettes";
-import { sr, srn } from "./utils/common";
+import { addHSV, sr, srn } from "./utils/common";
 import {
     angleFromVector,
     brushstrokeLine,
@@ -18,6 +18,211 @@ let selectedPalette = 0;
 setTimeout(() => {
     selectedPalette = getState().selectedPalette;
 }, 500);
+
+export class TriangleStripAgent {
+    p5: P5;
+    x1: number;
+    y1: number;
+
+    x2: number | undefined;
+    y2: number | undefined;
+
+    padding: number;
+    direction: "horizontal" | "vertical";
+    triangleCount: number;
+
+    triangleProps: {
+        color: P5.Color;
+        rotation: number;
+        width: number;
+
+        trigPositionRandomness: number;
+        trigSizeRandomness: number;
+    };
+
+    trianglesDrawn: number;
+    removeAgent: (agent: TriangleStripAgent) => void;
+
+    constructor(params: {
+        p5: P5;
+        x1: number;
+        y1: number;
+
+        x2?: number | undefined;
+        y2?: number | undefined;
+
+        padding: number;
+        direction: "horizontal" | "vertical";
+        triangleCount: number;
+
+        triangleProps: {
+            color: P5.Color;
+            rotation: number;
+            width: number;
+
+            trigPositionRandomness: number;
+            trigSizeRandomness: number;
+        };
+
+        removeAgent: (agent: TriangleStripAgent) => void;
+    }) {
+        this.p5 = params.p5;
+        this.x1 = params.x1;
+        this.y1 = params.y1;
+
+        this.x2 = params.x2;
+        this.y2 = params.y2;
+
+        this.padding = params.padding;
+        this.direction = params.direction;
+        this.triangleCount = params.triangleCount;
+
+        this.triangleProps = params.triangleProps;
+
+        this.trianglesDrawn = 0;
+        this.removeAgent = params.removeAgent;
+    }
+
+    update() {
+        const {
+            p5,
+            x1,
+            y1,
+
+            x2,
+            y2,
+
+            padding,
+            direction,
+            triangleCount,
+            triangleProps,
+        } = this;
+
+        const {
+            color,
+            width,
+
+            rotation,
+            trigPositionRandomness,
+            trigSizeRandomness,
+        } = triangleProps;
+
+        const yStart = Math.min(y1, y2 ?? 0);
+        const yEnd = Math.max(y1, y2 ?? 0);
+
+        const xStart = Math.min(x1, x2 ?? 0);
+        const xEnd = Math.max(x1, x2 ?? 0);
+
+        const randSize =
+            trigSizeRandomness !== undefined ? srn(x1) * trigSizeRandomness : 0;
+
+        if (x2 !== undefined && y2 !== undefined) {
+            const rectHeight =
+                direction === "vertical"
+                    ? (yEnd - yStart - padding * triangleCount) / triangleCount
+                    : yEnd - yStart;
+            const rectWidth =
+                direction === "horizontal"
+                    ? (xEnd - xStart - padding * triangleCount) / triangleCount
+                    : xEnd - xStart;
+
+            if (this.trianglesDrawn < triangleCount) {
+                const randX =
+                    trigPositionRandomness !== undefined
+                        ? Math.floor(
+                              srn(x1.toString() + this.trianglesDrawn) *
+                                  trigPositionRandomness
+                          )
+                        : 0;
+                const randY =
+                    trigPositionRandomness !== undefined
+                        ? Math.floor(
+                              srn(y1.toString() + this.trianglesDrawn) *
+                                  trigPositionRandomness
+                          )
+                        : 0;
+
+                const x = x1 + randX;
+                const y =
+                    p5.map(
+                        this.trianglesDrawn,
+                        0,
+                        triangleCount - 1,
+                        yStart,
+                        yEnd - rectHeight
+                    ) + randY;
+
+                p5.fill(color);
+
+                polygon({
+                    p5: p5,
+                    x: x + rectWidth / 2,
+                    y: y + rectHeight / 2,
+                    radius: width / 2 + randSize,
+                    sides: 3,
+                    color: color,
+                    fill: true,
+                    stroke: false,
+                    randomness: trigSizeRandomness,
+                    rotationInDeg: rotation ?? 0,
+                });
+
+                this.trianglesDrawn++;
+            }
+        } else {
+            if (this.trianglesDrawn < triangleCount) {
+                const randX =
+                    trigPositionRandomness !== undefined
+                        ? Math.floor(
+                              srn(x1.toString() + this.trianglesDrawn) *
+                                  trigPositionRandomness
+                          )
+                        : 0;
+                const randY =
+                    trigPositionRandomness !== undefined
+                        ? Math.floor(
+                              srn(y1.toString() + this.trianglesDrawn) *
+                                  trigPositionRandomness
+                          )
+                        : 0;
+
+                const x =
+                    x1 +
+                    (direction === "horizontal"
+                        ? this.trianglesDrawn * (width + padding)
+                        : 0) +
+                    randX;
+                const y =
+                    y1 +
+                    (direction === "vertical"
+                        ? this.trianglesDrawn * (width + padding)
+                        : 0) +
+                    randY;
+
+                p5.fill(color);
+
+                polygon({
+                    p5: p5,
+                    x: x + width / 2,
+                    y: y + width / 2,
+                    radius: width + randSize,
+                    sides: 3,
+                    color: color,
+                    fill: true,
+                    stroke: false,
+                    randomness: trigSizeRandomness,
+                    rotationInDeg: rotation ?? 0,
+                });
+
+                this.trianglesDrawn++;
+            }
+        }
+
+        if (this.trianglesDrawn >= triangleCount) {
+            this.removeAgent(this);
+        }
+    }
+}
 
 export class RectangleStripAgent {
     p5: P5;
@@ -450,13 +655,21 @@ export class LineAgent {
             //blend mode
             // p5.blendMode(p5.MULTIPLY);
             p5.blendMode(p5.DARKEST);
+            const c = p5.color(
+                addHSV(
+                    Palettes[selectedPalette].pencilColor,
+                    0,
+                    0,
+                    p5.random(-0.3, 0.3)
+                )
+            );
 
             brushstrokePencil({
                 p5: p5,
                 x: this.p.x,
                 y: this.p.y,
                 brushSize: u(5),
-                color: p5.color(p5.random(16, 100)),
+                color: c,
                 density: 0.8,
                 stippleSize: u(1),
                 stipplePositionRandomness: u(2),
@@ -467,6 +680,7 @@ export class LineAgent {
             p5.blendMode(p5.DARKEST);
 
             this.strokeWidth = this.strokeWidth * p5.random(0.95, 1.05);
+            if (this.strokeWidth > u(50)) this.strokeWidth *= 0.9;
             p5.strokeWeight(this.strokeWidth / 5);
 
             p5.stroke(Palettes[selectedPalette].accent);
@@ -479,7 +693,7 @@ export class LineAgent {
                 this.strokeWidth = this.strokeWidth * p5.random(0.95, 1.05);
                 p5.strokeWeight(this.strokeWidth / 5);
 
-                p5.stroke(p5.color("#444"));
+                p5.stroke(p5.color(Palettes[selectedPalette].pencilColor));
                 p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
             }
         } else if (this.type === "circles") {
@@ -514,7 +728,13 @@ export class LineAgent {
         } else {
             p5.blendMode(p5.BLEND);
             this.strokeWidth = this.strokeWidth * p5.random(0.97, 1.03);
+            if (this.strokeWidth > u(50)) this.strokeWidth *= 0.9;
             p5.strokeWeight(this.strokeWidth);
+
+            let colors = p5.shuffle(this.colors);
+            if (p5.random() > 0.8) {
+                colors = colors.splice(0, 1);
+            }
 
             brushstrokeLine({
                 p5: p5,
@@ -525,7 +745,7 @@ export class LineAgent {
                     stipplePositionRandomness: u(5),
                 },
                 brushType: "random",
-                colors: this.colors,
+                colors: colors,
 
                 hueRandomness: 0.04,
                 valueRandomness: 0.04,

@@ -8,6 +8,8 @@ export type ColorSet = Array<ColorObject[]>;
 export type PaletteType = {
     background: string;
     accent: string;
+    accentDark: string;
+    pencilColor: string;
     name?: string;
     blendMode?: GlobalCompositeOperation;
 

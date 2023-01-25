@@ -944,6 +944,17 @@ export const addBrightness = (hexColor: string, amount: number) => {
     return rgbToHex(r, g, b);
 };
 
+/**
+ * Adds HSV to a color.
+ *
+ * @param hexColor  - The color to add HSV to.
+ * @param h - hue, between -1 and 1
+ * @param s - saturation, between -1 and 1
+ * @param v - value, between -1 and 1
+ *
+ * @returns The new color.
+ */
+
 export const addHSV = (hexColor: string, h: number, s: number, v: number) => {
     const colorRgb = hexToRgb(hexColor);
     const [hsvH, hsvS, hsvV] = rgbToHsv(colorRgb.r, colorRgb.g, colorRgb.b);
@@ -969,7 +980,7 @@ export const addHSV = (hexColor: string, h: number, s: number, v: number) => {
     if (newV < 0) newV = 0;
 
     const [r, g, b] = hsvToRgb(newH, newS, newV);
-    return rgbToHex(r, g, b);
+    return rgbToHex(Math.floor(r), Math.floor(g), Math.floor(b));
 };
 
 export const rgbaCodeToRgb = (rgbaCode: string) => {
