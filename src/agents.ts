@@ -10,6 +10,7 @@ import {
     getVectorIntensity,
     linesRectangle,
     polygon,
+    polygonRough,
     vector_field,
 } from "./utils/p5utils";
 import { getState } from "./store";
@@ -38,6 +39,7 @@ export class TriangleStripAgent {
 
         trigPositionRandomness: number;
         trigSizeRandomness: number;
+        trigPointRandomness: number;
     };
 
     trianglesDrawn: number;
@@ -62,6 +64,7 @@ export class TriangleStripAgent {
 
             trigPositionRandomness: number;
             trigSizeRandomness: number;
+            trigPointRandomness: number;
         };
 
         removeAgent: (agent: TriangleStripAgent) => void;
@@ -115,6 +118,7 @@ export class TriangleStripAgent {
 
         const randSize =
             trigSizeRandomness !== undefined ? srn(x1) * trigSizeRandomness : 0;
+        p5.blendMode(p5.DARKEST);
 
         if (x2 !== undefined && y2 !== undefined) {
             const rectHeight =
@@ -154,7 +158,7 @@ export class TriangleStripAgent {
 
                 p5.fill(color);
 
-                polygon({
+                polygonRough({
                     p5: p5,
                     x: x + rectWidth / 2,
                     y: y + rectHeight / 2,
@@ -162,9 +166,12 @@ export class TriangleStripAgent {
                     sides: 3,
                     color: color,
                     fill: true,
-                    stroke: false,
                     randomness: trigSizeRandomness,
                     rotationInDeg: rotation ?? 0,
+
+                    detailSize: width / 30,
+                    strokeWidth: width / 16,
+                    strokeWidthRandomness: width / 32,
                 });
 
                 this.trianglesDrawn++;
@@ -201,7 +208,7 @@ export class TriangleStripAgent {
 
                 p5.fill(color);
 
-                polygon({
+                polygonRough({
                     p5: p5,
                     x: x + width / 2,
                     y: y + width / 2,
@@ -209,9 +216,12 @@ export class TriangleStripAgent {
                     sides: 3,
                     color: color,
                     fill: true,
-                    stroke: false,
-                    randomness: trigSizeRandomness,
+                    randomness: this.triangleProps.trigPointRandomness,
                     rotationInDeg: rotation ?? 0,
+
+                    detailSize: width / 30,
+                    strokeWidth: width / 16,
+                    strokeWidthRandomness: width / 32,
                 });
 
                 this.trianglesDrawn++;
@@ -704,7 +714,8 @@ export class LineAgent {
                 this.strokeWidth = this.strokeWidth * p5.random(0.95, 1.05);
                 p5.strokeWeight(this.strokeWidth / p5.random(7, 20));
 
-                p5.stroke(p5.color("#666"));
+                // p5.stroke(p5.color("#666"));
+                p5.stroke(p5.color(Palettes[selectedPalette].pencilColor));
                 p5.noFill();
 
                 const thisSize = (this.strokeWidth / 2) * p5.random(0.3, 1.4);
@@ -712,17 +723,22 @@ export class LineAgent {
                 const xOffset = p5.random(-thisSize, thisSize);
                 const yOffset = p5.random(-thisSize, thisSize);
 
-                polygon({
+                polygonRough({
                     p5: p5,
                     x: this.p.x + xOffset,
                     y: this.p.y + yOffset,
                     radius: thisSize,
                     sides: 16,
-                    color: p5.color("#999"),
-                    stroke: true,
+                    color: p5.color(
+                        p5.color(Palettes[selectedPalette].pencilColor)
+                    ),
                     fill: false,
                     randomness: thisSize / 64,
                     rotationInDeg: sr(this.p.x) * 180,
+
+                    detailSize: thisSize / 10,
+                    strokeWidth: thisSize / 8,
+                    strokeWidthRandomness: thisSize / 16,
                 });
             }
         } else {

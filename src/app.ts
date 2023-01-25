@@ -69,7 +69,7 @@ const sketch = (p5: P5) => {
 
     var nLineAgents = 50 + Math.floor(charB / 2);
     var nStripAgents = 9;
-    var nTriangleAgents = 9;
+    var nTriangleAgents = 5;
 
     let lineAgents: LineAgent[] = [];
     let stripAgents: RectangleStripAgent[] = [];
@@ -168,7 +168,7 @@ const sketch = (p5: P5) => {
         }
 
         for (let i = 0; i < nStripAgents; i++) {
-            const x = p5.width * p5.random(0.05, 0.8);
+            const x = p5.width * p5.random(0.03, 0.83);
             const count = Math.floor(p5.random(15, 60));
             const width = u(70) * p5.random(0.05, 1);
 
@@ -208,34 +208,28 @@ const sketch = (p5: P5) => {
         }
 
         for (let i = 0; i < nTriangleAgents; i++) {
-            const x = p5.width * p5.random(0.05, 0.8);
+            const x = p5.width * p5.random(0.03, 0.83);
             const count = Math.floor(p5.random(8, 20));
-            const width = u(70) * p5.random(0.05, 1);
+            const width = p5.random(u(10), u(50));
 
             triangleAgents.push(
                 new TriangleStripAgent({
                     p5: p5,
                     x1: x,
-                    y1: u(20) + p5.random(0, p5.height / 2),
+                    y1: p5.random(-p5.height / 2, p5.height / 2),
 
-                    padding: u(17),
+                    padding: p5.random(u(5), u(25)),
                     direction: "vertical",
                     triangleCount: count,
                     triangleProps: {
                         color: p5.color(
-                            Palettes[selectedPalette].colorsA[
-                                Math.floor(
-                                    p5.random(
-                                        0,
-                                        Palettes[selectedPalette].colorsA.length
-                                    )
-                                )
-                            ].color
+                            Palettes[selectedPalette].trianglesColor
                         ),
-                        width: u(100),
-                        rotation: 0,
+                        width: width,
+                        rotation: Math.floor(p5.random(0, 2)) * 180,
                         trigPositionRandomness: u(2),
-                        trigSizeRandomness: 0,
+                        trigSizeRandomness: u(2),
+                        trigPointRandomness: 0,
                     },
 
                     removeAgent: removeTriangleAgent,

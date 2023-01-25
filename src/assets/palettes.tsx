@@ -112,6 +112,7 @@ const Palettes: PaletteType[] = [
 
         name: "Coral",
         stripLinesColor: "#f9f9fb",
+        trianglesColor: "#c6cce1",
 
         colorsA: [
             { color: "#FF698C", opacity: 1 },

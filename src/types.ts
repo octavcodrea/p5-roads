@@ -13,6 +13,7 @@ export type PaletteType = {
     name?: string;
     blendMode?: GlobalCompositeOperation;
 
+    trianglesColor: string;
     stripLinesColor: string;
 
     colorsA: ColorObject[];

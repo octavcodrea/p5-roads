@@ -2,6 +2,7 @@ import P5 from "p5";
 import { u } from "../app";
 import {
     addHSVToRGBACode,
+    calculate3DDistance,
     calculatePointFromAngle,
     hexToRgb,
     hsvToRgb,
@@ -916,5 +917,105 @@ export const polygon = (params: {
 
     p5.endShape(p5.CLOSE);
 
+    p5.pop();
+};
+
+export const polygonRough = (params: {
+    p5: P5;
+    x: number;
+    y: number;
+    radius: number;
+    sides: number;
+    color: P5.Color;
+    fill: boolean;
+
+    strokeWidth: number;
+    strokeWidthRandomness: number;
+    detailSize: number;
+
+    rotationInDeg?: number;
+    randomness?: number;
+}) => {
+    const {
+        p5,
+        x,
+        y,
+        radius,
+        sides,
+        color,
+        rotationInDeg,
+        randomness,
+        strokeWidth,
+        strokeWidthRandomness,
+        detailSize,
+    } = params;
+
+    p5.push();
+
+    p5.translate(x, y);
+    p5.angleMode(p5.DEGREES);
+    p5.rotate(rotationInDeg ?? 0);
+    p5.angleMode(p5.RADIANS);
+
+    p5.stroke(color);
+
+    if (params.fill) {
+        p5.fill(color);
+    } else {
+        p5.noFill();
+    }
+
+    p5.beginShape();
+
+    for (let i = 0; i < sides; i++) {
+        const angle1 = p5.map(i - 1, 0, sides, 0, p5.TWO_PI);
+        const angle2 = p5.map(i, 0, sides, 0, p5.TWO_PI);
+
+        const randX1 =
+            randomness !== undefined
+                ? srn(x.toString() + (i - 1) + y) * randomness
+                : 0;
+        const randY1 =
+            randomness !== undefined
+                ? srn(i - 1 + y.toString() + x) * randomness
+                : 0;
+
+        const randX2 =
+            randomness !== undefined
+                ? srn(x.toString() + i + y) * randomness
+                : 0;
+        const randY2 =
+            randomness !== undefined
+                ? srn(i + y.toString() + x) * randomness
+                : 0;
+
+        const sx1 = Math.floor((radius / 2) * p5.cos(angle1) + randX1);
+        const sy1 = Math.floor((radius / 2) * p5.sin(angle1) + randY1);
+
+        const sx2 = Math.floor((radius / 2) * p5.cos(angle2) + randX2);
+        const sy2 = Math.floor((radius / 2) * p5.sin(angle2) + randY2);
+
+        p5.vertex(sx2, sy2);
+
+        const numberOfLines = Math.round(
+            calculate3DDistance(sx1, sy1, 0, sx2, sy2, 0) / detailSize
+        );
+
+        for (let j = 0; j < numberOfLines; j++) {
+            const x1 = sx1 + (sx2 - sx1) * (j / numberOfLines);
+            const y1 = sy1 + (sy2 - sy1) * (j / numberOfLines);
+
+            const x2 = sx1 + (sx2 - sx1) * ((j + 1) / numberOfLines);
+            const y2 = sy1 + (sy2 - sy1) * ((j + 1) / numberOfLines);
+
+            p5.strokeWeight(
+                Math.abs(strokeWidth + p5.noise(x1, y1) * strokeWidthRandomness)
+            );
+            p5.line(x1, y1, x2, y2);
+        }
+    }
+
+    p5.noStroke();
+    p5.endShape(p5.CLOSE);
     p5.pop();
 };
