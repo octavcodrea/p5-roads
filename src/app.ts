@@ -3,7 +3,7 @@ import { LineAgent, RectangleStripAgent, TriangleStripAgent } from "./agents";
 import noiseColor from "./assets/images/noise-color.png";
 import noiseMono from "./assets/images/noise-mono.png";
 import Palettes from "./assets/palettes";
-import { mapGradient, srExtra } from "./utils/common";
+import { hexToRgba, mapGradient, sr, sre, srExtra } from "./utils/common";
 import { brushstrokePencil, brushstrokeRectangle } from "./utils/p5utils";
 //import vanilla zustand store
 import { store } from "./store";
@@ -11,6 +11,7 @@ import { store } from "./store";
 const { canvasWidth, canvasHeight } = store.getState();
 
 const unit = canvasWidth / 1000;
+let deltaTime = 0;
 
 export function u(x: number) {
     if (typeof x === "number") {
@@ -22,14 +23,8 @@ export function u(x: number) {
 }
 
 const sketch = (p5: P5) => {
-    const seed = Math.floor(Math.random() * 1000000000000000).toString();
-    const htmlseed = document.getElementById("seed");
-    if (htmlseed) {
-        htmlseed.innerHTML = seed;
-    }
-
-    //set seed in store
-    store.setState({ seed: seed });
+    let seed = Math.floor(Math.random() * 1000000000000000).toString();
+    let newSeed = seed;
 
     const charA = parseInt(seed[0] + seed[1]);
     const charB = parseInt(seed[2] + seed[3]);
@@ -40,42 +35,71 @@ const sketch = (p5: P5) => {
     const charG = parseInt(seed[12] + seed[13]);
     const charH = parseInt(seed[14] + seed[15]);
 
-    const linesDirection = charA > 50 ? "down-right" : "up-right";
-    const selectedPalette = Math.floor(Palettes.length * (charD / 100));
+    const seedA = charA.toString();
+    const seedB = charB.toString();
+    const seedC = charC.toString();
+    const seedD = charD.toString();
+    const seedE = charE.toString();
+    const seedF = charF.toString();
+    const seedG = charG.toString();
+    const seedH = charH.toString();
 
-    store.setState({ selectedPalette: selectedPalette });
+    let linesDirection: "down-right" | "up-right" =
+        charA > 50 ? "down-right" : "up-right";
+    let selectedPalette = Math.floor(Palettes.length * (charD / 100));
 
-    var colors = [
-        "#5949c1",
-        "#1593b2",
-        "#1cba8d",
-        "#feb30f",
-        "#fbf26f",
-        "#ffffff",
-        "#4fd2de",
-        "#0aa4f7",
-    ].map((c) => p5.color(c));
-
-    const gradient = mapGradient(
-        colors.map((c) => {
-            return {
-                color: c.toString(),
-                opacity: 1,
-            };
-        }),
-        20,
-        "hex"
-    );
-
-    var nLineAgents = 50 + Math.floor(charB / 2);
-    var nStripAgents = 9;
-    var nTriangleAgents = 5;
+    let nLineAgents = 0;
+    let nStripAgents = 9;
+    let nTriangleAgents = 7;
 
     let lineAgents: LineAgent[] = [];
     let stripAgents: RectangleStripAgent[] = [];
     let triangleAgents: TriangleStripAgent[] = [];
 
     let rectanglesDrawn = false;
+
+    function setupFromSeed() {
+        const htmlseed = document.getElementById("info-seed");
+        if (htmlseed) {
+            htmlseed.innerHTML = seed;
+        }
+
+        const htmlnewseed = document.getElementById("new-seed");
+        if (htmlnewseed) {
+            if (!document.getElementById("new-seed-input")) {
+                const newSeedInput = document.createElement("input");
+                newSeedInput.id = "new-seed-input";
+                newSeedInput.value = newSeed;
+
+                newSeedInput.addEventListener("change", (e) => {
+                    // @ts-ignore
+                    if (e.target && e.target.value) {
+                        // @ts-ignore
+                        newSeed = e.target.value;
+                    }
+                });
+
+                htmlnewseed.appendChild(newSeedInput);
+            }
+        }
+
+        const htmlcolor = document.getElementById("info-color");
+        if (htmlcolor) {
+            const paletteName = Palettes[selectedPalette].name || "Unknown";
+            htmlcolor.innerHTML = paletteName;
+        }
+
+        const htmlstyle = document.getElementById("info-style");
+        if (htmlstyle) {
+            const styleName = charC % 3 === 0 ? "straight" : "smooth";
+            htmlstyle.innerHTML = styleName;
+        }
+
+        nLineAgents = 50 + Math.floor(charB / 2);
+        console.log("line agents:", nLineAgents);
+    }
+
+    setupFromSeed();
 
     function removeAgent(agent: LineAgent) {
         lineAgents = lineAgents.filter((a) => a !== agent);
@@ -91,6 +115,7 @@ const sketch = (p5: P5) => {
 
     let noiseImgColor: P5.Image;
     let noiseImgMono: P5.Image;
+
     p5.preload = () => {
         noiseImgColor = p5.loadImage(noiseColor);
         noiseImgMono = p5.loadImage(noiseMono);
@@ -105,144 +130,193 @@ const sketch = (p5: P5) => {
         p5.strokeCap(p5.ROUND);
         p5.angleMode(p5.RADIANS);
 
-        p5.background(
-            p5.color(Palettes[selectedPalette].background).toString()
-        );
+        function doSetup() {
+            p5.loop();
 
-        //blend mode
-        p5.blendMode(p5.OVERLAY);
+            lineAgents = [];
+            stripAgents = [];
+            triangleAgents = [];
 
-        //image opacity
-        p5.tint(255, 0.2);
+            rectanglesDrawn = false;
 
-        //image
-        for (let i = 0; i < p5.width; i += noiseImgMono.width) {
-            for (let j = 0; j < p5.height; j += noiseImgMono.height) {
-                p5.image(noiseImgMono, i, j);
+            p5.blendMode(p5.BLEND);
+
+            p5.background(
+                p5.color(Palettes[selectedPalette].background).toString()
+            );
+
+            //blend mode
+            p5.blendMode(p5.OVERLAY);
+
+            //image opacity
+            p5.tint(255, 0.2);
+
+            //image
+            for (let i = 0; i < p5.width; i += noiseImgMono.width) {
+                for (let j = 0; j < p5.height; j += noiseImgMono.height) {
+                    p5.image(noiseImgMono, i, j);
+                }
+            }
+
+            console.log("added noise setup");
+
+            const scale = 1;
+
+            for (let i = 0; i < nLineAgents; i++) {
+                let colors = (
+                    i % 4 === 0
+                        ? Palettes[selectedPalette].colorsA
+                        : i % 4 === 1
+                        ? Palettes[selectedPalette].colorsB
+                        : i % 4 === 2
+                        ? Palettes[selectedPalette].colorsC
+                        : Palettes[selectedPalette].colorsD
+                ).map((c) => p5.color(c.color));
+
+                const x0 =
+                    p5.width *
+                    (0.3 -
+                        0.45 *
+                            srExtra(
+                                i,
+                                (p5.frameCount - deltaTime).toString() +
+                                    i.toString()
+                            ));
+                const y0 =
+                    linesDirection === "down-right"
+                        ? p5.height * sre(i, seedE + i, -0.15, 0)
+                        : p5.height * sre(i + 2, seedE + i, 1, 1.15);
+
+                lineAgents.push(
+                    new LineAgent({
+                        p5: p5,
+                        x0: x0,
+                        y0: y0,
+                        seed: (
+                            srExtra(
+                                2 * i,
+                                seedA + (p5.frameCount - deltaTime) + i
+                            ) * 10
+                        ).toString(),
+                        direction: 1,
+                        linesDirection: linesDirection,
+                        agentIndex: lineAgents.length,
+                        colors: colors,
+                        removeAgent: removeAgent,
+                        mode: charC % 3 === 0 ? "straight" : "smooth",
+                        scale: scale,
+                        deltaTime: deltaTime,
+                    })
+                );
+            }
+
+            for (let i = 0; i < nStripAgents; i++) {
+                const x = p5.width * sre(i, seedF + i, 0.03, 0.83);
+                const count = Math.floor(sre(i + 3, seedF + i, 15, 60));
+                const width = u(70) * sre(i + 4, seedF + i, 0.05, 1);
+
+                stripAgents.push(
+                    new RectangleStripAgent({
+                        p5: p5,
+                        x1: x,
+                        y1: u(20),
+
+                        x2: x + width,
+                        y2: p5.height - u(20),
+                        padding: u(17),
+                        direction: "vertical",
+                        rectangleCount: count,
+                        rectangleProps: {
+                            // color: p5.color("#ccb"),
+                            color: p5.color(
+                                Palettes[selectedPalette].stripLinesColor
+                            ),
+                            width: u(100),
+                            height: u(50),
+
+                            rectPositionRandomness: u(2),
+                            rectSizeRandomness: 0,
+
+                            brushPositionRandomness: u(1),
+                            brushSizeRandomness: 0,
+
+                            brushScale: u(10),
+                            brushStippleSize: u(1),
+                            brushStippleRandomness: u(2),
+                        },
+
+                        removeAgent: removeStripAgent,
+                    })
+                );
+            }
+
+            for (let i = 0; i < nTriangleAgents; i++) {
+                const x = p5.width * sre(i + 1, seedE + i, 0.03, 0.83);
+                const count = Math.floor(sre(i + 2, seedE, 4, 14));
+                const width = sre(i + 4, i + seedE, u(7), u(40));
+
+                triangleAgents.push(
+                    new TriangleStripAgent({
+                        p5: p5,
+                        x1: x,
+                        y1: p5.height * sre(i + 3, seedF + i, -0.5, 0.5),
+
+                        padding: sr(i, u(5), u(25)),
+                        direction: "vertical",
+                        triangleCount: count,
+                        triangleProps: {
+                            color: p5.color(
+                                Palettes[selectedPalette].trianglesColor
+                            ),
+                            width: width,
+                            rotation: Math.floor(sre(i, seedF + i, 2)) * 180,
+                            trigPositionRandomness: u(1),
+                            trigSizeRandomness: u(2),
+                            trigPointRandomness: 0,
+                        },
+
+                        removeAgent: removeTriangleAgent,
+                    })
+                );
             }
         }
 
-        console.log("added noise setup");
+        doSetup();
 
-        const scale = 1;
+        //create button to reset
+        const resetButton = document.createElement("button");
+        resetButton.id = "reset-button";
+        resetButton.innerHTML = "Reset";
+        resetButton.onclick = () => {
+            setupFromSeed();
+            doSetup();
+        };
 
-        for (let i = 0; i < nLineAgents; i++) {
-            let colors = (
-                i % 4 === 0
-                    ? Palettes[selectedPalette].colorsA
-                    : i % 4 === 1
-                    ? Palettes[selectedPalette].colorsB
-                    : i % 4 === 2
-                    ? Palettes[selectedPalette].colorsC
-                    : Palettes[selectedPalette].colorsD
-            ).map((c) => p5.color(c.color));
+        const htmlnewseed = document.getElementById("new-seed");
+        if (htmlnewseed) {
+            if (!document.getElementById("new-seed-button")) {
+                const newSeedButton = document.createElement("button");
+                newSeedButton.id = "new-seed-button";
+                newSeedButton.innerHTML = "Set seed";
+                newSeedButton.addEventListener("click", () => {
+                    seed = newSeed;
+                    setupFromSeed();
+                    doSetup();
+                });
 
-            // const x0 = p5.width * p5.random(-0.15, 0.3);
-            const x0 =
-                p5.width *
-                (0.3 -
-                    0.45 * srExtra(i, p5.frameCount.toString() + i.toString()));
-            const y0 =
-                linesDirection === "down-right"
-                    ? p5.height * p5.random(-0.15, 0)
-                    : p5.height * p5.random(1, 1.15);
+                htmlnewseed.appendChild(newSeedButton);
+            }
 
-            lineAgents.push(
-                new LineAgent({
-                    p5: p5,
-                    x0: x0,
-                    y0: y0,
-                    seed: srExtra(
-                        2 * i,
-                        p5.frameCount.toString() + i.toString()
-                    ).toString(),
-                    direction: 1,
-                    linesDirection: linesDirection,
-                    agentIndex: lineAgents.length,
-                    colors: colors,
-                    removeAgent: removeAgent,
-                    mode: charC % 3 === 0 ? "straight" : "smooth",
-                    scale: scale,
-                })
-            );
-        }
-
-        for (let i = 0; i < nStripAgents; i++) {
-            const x = p5.width * p5.random(0.03, 0.83);
-            const count = Math.floor(p5.random(15, 60));
-            const width = u(70) * p5.random(0.05, 1);
-
-            stripAgents.push(
-                new RectangleStripAgent({
-                    p5: p5,
-                    x1: x,
-                    y1: u(20),
-
-                    x2: x + width,
-                    y2: p5.height - u(20),
-                    padding: u(17),
-                    direction: "vertical",
-                    rectangleCount: count,
-                    rectangleProps: {
-                        // color: p5.color("#ccb"),
-                        color: p5.color(
-                            Palettes[selectedPalette].stripLinesColor
-                        ),
-                        width: u(100),
-                        height: u(50),
-
-                        rectPositionRandomness: u(2),
-                        rectSizeRandomness: 0,
-
-                        brushPositionRandomness: u(1),
-                        brushSizeRandomness: 0,
-
-                        brushScale: u(10),
-                        brushStippleSize: u(1),
-                        brushStippleRandomness: u(2),
-                    },
-
-                    removeAgent: removeStripAgent,
-                })
-            );
-        }
-
-        for (let i = 0; i < nTriangleAgents; i++) {
-            const x = p5.width * p5.random(0.03, 0.83);
-            const count = Math.floor(p5.random(8, 20));
-            const width = p5.random(u(10), u(50));
-
-            triangleAgents.push(
-                new TriangleStripAgent({
-                    p5: p5,
-                    x1: x,
-                    y1: p5.random(-p5.height / 2, p5.height / 2),
-
-                    padding: p5.random(u(5), u(25)),
-                    direction: "vertical",
-                    triangleCount: count,
-                    triangleProps: {
-                        color: p5.color(
-                            Palettes[selectedPalette].trianglesColor
-                        ),
-                        width: width,
-                        rotation: Math.floor(p5.random(0, 2)) * 180,
-                        trigPositionRandomness: u(2),
-                        trigSizeRandomness: u(2),
-                        trigPointRandomness: 0,
-                    },
-
-                    removeAgent: removeTriangleAgent,
-                })
-            );
+            if (!document.getElementById("reset-button")) {
+                htmlnewseed.appendChild(resetButton);
+            }
         }
     };
 
     p5.draw = () => {
-        if (
-            p5.frameCount > 5000 ||
-            (stripAgents.length === 0 && lineAgents.length === 0)
-        ) {
+        deltaTime++;
+
+        if (stripAgents.length === 0 && lineAgents.length === 0) {
             //blend mode
             p5.blendMode(p5.OVERLAY);
 
@@ -275,15 +349,20 @@ const sketch = (p5: P5) => {
 
         if (stripAgents.length === 0 && rectanglesDrawn === false) {
             for (let i = 0; i < 50; i++) {
-                const x1 = p5.random(0.02, 0.98) * p5.width;
-                const y1 = p5.random(0.02, 0.98) * p5.height;
+                const x1 =
+                    srExtra(i, i.toString() + charE, 0.02, 0.98) * p5.width;
+                const y1 =
+                    srExtra(i + 1, i.toString() + charF, 0.02, 0.98) *
+                    p5.height;
 
                 brushstrokeRectangle({
                     p5: p5,
                     color: p5.color(
                         Palettes[selectedPalette].colorsB[
                             Math.floor(
-                                p5.random(
+                                sre(
+                                    i + 6,
+                                    i.toString() + charF,
                                     0,
                                     Palettes[selectedPalette].colorsB.length
                                 )
@@ -294,8 +373,8 @@ const sketch = (p5: P5) => {
                     valueRandomness: 0.1,
                     x1: x1,
                     y1: y1,
-                    x2: x1 + p5.random(u(3), u(10)),
-                    y2: y1 + p5.random(u(3), u(10)),
+                    x2: x1 + sre(i, i.toString() + charG, u(3), u(10)),
+                    y2: y1 + sre(i + 3, i.toString() + charG, u(3), u(10)),
                     brushProps: {
                         brushType: "paintDrop",
                         brushPositionRandomness: u(1),
@@ -310,16 +389,17 @@ const sketch = (p5: P5) => {
             }
 
             for (let i = 0; i < 10; i++) {
-                const x1 = p5.random(0.02, 0.98) * p5.width;
-                const y1 = p5.random(0.02, 0.98) * p5.height;
+                const x1 = sr(i, 0.02, 0.98) * p5.width;
+                const y1 = sr(i, 0.02, 0.98) * p5.height;
 
                 brushstrokeRectangle({
                     p5: p5,
                     color: p5.color(Palettes[selectedPalette].accentDark),
                     x1: x1,
                     y1: y1,
-                    x2: x1 + p5.random(u(10), u(45)),
-                    y2: y1 + p5.random(u(1), u(3)),
+
+                    x2: x1 + sre(i + 7, i.toString() + charG, u(10), u(45)),
+                    y2: y1 + sre(i + 3, i.toString() + charG, u(1), u(3)),
                     brushProps: {
                         brushPositionRandomness: u(1),
                         brushSizeRandomness: 0,
@@ -342,8 +422,8 @@ const sketch = (p5: P5) => {
                     x: x1,
                     y: y1,
 
-                    brushSize: u(p5.random(0.1, 3)),
-                    density: p5.random(0.4, 0.9),
+                    brushSize: u(sre(charG, i, 0.1, 3)),
+                    density: sre(charH, i, 0.4, 0.9),
                     stippleSize: u(0.4),
                     stipplePositionRandomness: u(8),
                     stippleSizeRandomness: 0,

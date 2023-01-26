@@ -1,7 +1,7 @@
 import P5 from "p5";
 import { u } from "./app";
 import Palettes from "./assets/palettes";
-import { addHSV, sr, srn } from "./utils/common";
+import { addHSV, sr, sre, srn } from "./utils/common";
 import {
     angleFromVector,
     brushstrokeLine,
@@ -540,6 +540,7 @@ export class LineAgent {
     vectorStep: number;
 
     removeAgent: (agent: LineAgent) => void;
+    deltaTime: number;
 
     constructor(params: {
         p5: P5;
@@ -554,6 +555,7 @@ export class LineAgent {
         colors?: P5.Color[];
         mode?: "straight" | "smooth";
         removeAgent: (agent: LineAgent) => void;
+        deltaTime: number;
     }) {
         const {
             p5,
@@ -569,14 +571,16 @@ export class LineAgent {
         } = params;
 
         this.p5 = p5;
+        this.deltaTime = params.deltaTime;
         this.agentIndex = agentIndex ?? 0;
         this.p = p5.createVector(x0, y0);
         this.direction = direction ?? 1;
         this.linesDirection = linesDirection;
         this.colors = colors ?? [p5.color("#000")];
-        this.scale = p5.random(1, 10);
-        this.strokeWidth = (u(16) + u(6) * p5.sin(p5.frameCount)) * scale;
+        this.strokeWidth =
+            (u(16) + u(6) * p5.sin(p5.frameCount - this.deltaTime)) * scale;
         this.seed = seed;
+        this.scale = sr(seed, 1, 10);
         this.colorIndex = 0;
         this.layer = 0;
         this.type = "default";
@@ -587,6 +591,8 @@ export class LineAgent {
 
         this.step = 1;
         this.removeAgent = params.removeAgent;
+
+        console.log("seed:", seed);
 
         if (this.agentIndex % 5 === 0) {
             this.type = "pencil";
@@ -614,6 +620,8 @@ export class LineAgent {
 
     update() {
         const { p5 } = this;
+        const seedfc = this.seed + (p5.frameCount - this.deltaTime);
+
         if (this.mode === "smooth") {
             this.vector = vector_field(
                 p5,
@@ -621,19 +629,25 @@ export class LineAgent {
                 this.p.y,
                 this.scale,
                 this.linesDirection,
-                this.seed
+                this.seed,
+                p5.frameCount - this.deltaTime
             );
         } else {
-            if (Math.floor(p5.frameCount / this.vectorStep) % 2 === 0) {
+            if (
+                Math.floor((p5.frameCount - this.deltaTime) / this.vectorStep) %
+                    2 ===
+                0
+            ) {
                 this.vector = vector_field(
                     p5,
                     this.p.x,
                     this.p.y,
                     this.scale,
                     this.linesDirection,
-                    this.seed
+                    this.seed,
+                    p5.frameCount - this.deltaTime
                 );
-                this.vectorStep = p5.random(10, 50);
+                this.vectorStep = sre(9, this.seed, 10, 50);
             }
         }
 
@@ -670,7 +684,7 @@ export class LineAgent {
                     Palettes[selectedPalette].pencilColor,
                     0,
                     0,
-                    p5.random(-0.3, 0.3)
+                    sr(seedfc, -0.3, 0.3)
                 )
             );
 
@@ -689,39 +703,41 @@ export class LineAgent {
             //blend mode
             p5.blendMode(p5.DARKEST);
 
-            this.strokeWidth = this.strokeWidth * p5.random(0.95, 1.05);
+            this.strokeWidth = this.strokeWidth * sr(seedfc, 0.95, 1.05);
             if (this.strokeWidth > u(50)) this.strokeWidth *= 0.9;
             p5.strokeWeight(this.strokeWidth / 5);
 
             p5.stroke(Palettes[selectedPalette].accent);
             p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
         } else if (this.type === "dashed-line") {
-            if ((p5.frameCount * 0.6) % 2 === 0) {
+            if (((p5.frameCount - this.deltaTime) * 0.6) % 2 === 0) {
                 //blend mode
                 p5.blendMode(p5.DARKEST);
 
-                this.strokeWidth = this.strokeWidth * p5.random(0.95, 1.05);
+                this.strokeWidth =
+                    this.strokeWidth * sre(1, seedfc, 0.95, 1.05);
                 p5.strokeWeight(this.strokeWidth / 5);
 
                 p5.stroke(p5.color(Palettes[selectedPalette].pencilColor));
                 p5.line(this.pOld.x, this.pOld.y, this.p.x, this.p.y);
             }
         } else if (this.type === "circles") {
-            if ((p5.frameCount * 0.1) % 2 === 0) {
+            if (((p5.frameCount - this.deltaTime) * 0.1) % 2 === 0) {
                 //blend mode
                 p5.blendMode(p5.DARKEST);
 
-                this.strokeWidth = this.strokeWidth * p5.random(0.95, 1.05);
-                p5.strokeWeight(this.strokeWidth / p5.random(7, 20));
+                this.strokeWidth =
+                    this.strokeWidth * sre(2, seedfc, 0.95, 1.05);
+                p5.strokeWeight(this.strokeWidth / sre(3, seedfc, 7, 20));
 
-                // p5.stroke(p5.color("#666"));
                 p5.stroke(p5.color(Palettes[selectedPalette].pencilColor));
                 p5.noFill();
 
-                const thisSize = (this.strokeWidth / 2) * p5.random(0.3, 1.4);
+                const thisSize =
+                    (this.strokeWidth / 2) * sre(4, seedfc, 0.3, 1.4);
 
-                const xOffset = p5.random(-thisSize, thisSize);
-                const yOffset = p5.random(-thisSize, thisSize);
+                const xOffset = sre(5, seedfc, -thisSize, thisSize);
+                const yOffset = sre(6, seedfc, -thisSize, thisSize);
 
                 polygonRough({
                     p5: p5,
@@ -743,12 +759,12 @@ export class LineAgent {
             }
         } else {
             p5.blendMode(p5.BLEND);
-            this.strokeWidth = this.strokeWidth * p5.random(0.97, 1.03);
+            this.strokeWidth = this.strokeWidth * sre(7, seedfc, 0.97, 1.03);
             if (this.strokeWidth > u(50)) this.strokeWidth *= 0.9;
             p5.strokeWeight(this.strokeWidth);
 
             let colors = p5.shuffle(this.colors);
-            if (p5.random() > 0.8) {
+            if (sre(8, seedfc) > 0.8) {
                 colors = colors.splice(0, 1);
             }
 
@@ -767,66 +783,12 @@ export class LineAgent {
                 valueRandomness: 0.04,
                 stippleSizeRandomness: 0.5,
 
-                frameCount: p5.frameCount,
+                frameCount: p5.frameCount - this.deltaTime,
                 directionAngle: angleFromVector(this.vector),
                 drip: 0.02,
             });
         }
 
         this.pOld.set(this.p);
-
-        // if (p5.random(0, 1) > 0.99) {
-        //     const ellipsePoint = calculatePointFromAngle({
-        //         originX: this.p.x,
-        //         originY: this.p.y,
-        //         angle: angleFromVector(vector) + p5.PI / 2,
-        //         distance: this.strokeWidth * 2,
-        //         mode: "radians",
-        //     });
-
-        //     p5.noFill();
-        //     p5.ellipse(
-        //         ellipsePoint.x,
-        //         ellipsePoint.y,
-        //         this.strokeWidth / 2,
-        //         this.strokeWidth / 2
-        //     );
-        // }
-
-        // if (
-        //     this.step !== 0 &&
-        //     p5.frameCount % Math.floor(200 * seedrandom(this.seed)()) ===
-        //         0 &&
-        //     p5.random(0, 1) > 0.5 &&
-        //     agents.length < 300
-        // ) {
-        //     this.step = 0;
-        //     //destroy agent
-        //     agents.splice(agents.indexOf(this), 1);
-
-        //     agents.push(
-        //         new Agent(
-        //             this.p.x,
-        //             this.p.y,
-        //             this.p.x.toString() + this.p.y,
-        //             this.direction + p5.random(-0.7, 0.7)
-        //         )
-        //     );
-        //     agents.push(
-        //         new Agent(
-        //             this.p.x,
-        //             this.p.y,
-        //             this.p.y.toString() + this.p.x,
-        //             this.direction + p5.random(-1, 1)
-        //         )
-        //     );
-
-        //     console.log(
-        //         "agents: ",
-        //         agents.length,
-        //         "framecount: ",
-        //         p5.frameCount
-        //     );
-        // }
     }
 }

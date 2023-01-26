@@ -299,7 +299,15 @@ export const seedrandomWithNegative = (seed: string | number) => {
  *
  */
 
-export function srn(seed: string | number) {
+export function srn(seed: string | number, num1?: number, num2?: number) {
+    if (num1 !== undefined && num2 !== undefined) {
+        return seedrandomWithNegative(seed) * (num2 - num1) + num1;
+    }
+
+    if (num1 !== undefined && num2 === undefined) {
+        return seedrandomWithNegative(seed) * num1;
+    }
+
     return seedrandomWithNegative(seed);
 }
 
@@ -310,7 +318,15 @@ export function srn(seed: string | number) {
  *
  */
 
-export function sr(seed: string | number) {
+export function sr(seed: string | number, num1?: number, num2?: number) {
+    if (num1 !== undefined && num2 !== undefined) {
+        return seedrandom(seed.toString())() * (num2 - num1) + num1;
+    }
+
+    if (num1 !== undefined && num2 === undefined) {
+        return seedrandom(seed.toString())() * num1;
+    }
+
     return seedrandom(seed.toString())();
 }
 
@@ -322,7 +338,12 @@ export function sr(seed: string | number) {
  *
  */
 
-export function srExtra(algorithm: number, seed: string | number) {
+export function srExtra(
+    algorithm: number,
+    seed: string | number,
+    num1?: number,
+    num2?: number
+) {
     let numberToReturn = 0;
     const s = typeof seed === "number" ? seed.toString() : seed;
     let a = algorithm % 1 === 0 ? algorithm : Math.floor(algorithm);
@@ -363,6 +384,14 @@ export function srExtra(algorithm: number, seed: string | number) {
             break;
     }
 
+    if (num1 !== undefined && num2 !== undefined) {
+        return numberToReturn * (num2 - num1) + num1;
+    }
+
+    if (num1 !== undefined && num2 === undefined) {
+        return numberToReturn * num1;
+    }
+
     return numberToReturn;
 }
 
@@ -374,9 +403,24 @@ export function srExtra(algorithm: number, seed: string | number) {
  *
  */
 
-export const srnExtra = (algorithm: number, seed: string | number) => {
+export const srnExtra = (
+    algorithm: number,
+    seed: string | number,
+    num1?: number,
+    num2?: number
+) => {
+    if (num1 !== undefined && num2 !== undefined) {
+        return srExtra(algorithm, seed, num1, num2) * 2 - 1;
+    }
+
+    if (num1 !== undefined && num2 === undefined) {
+        return srExtra(algorithm, seed, num1) * 2 - 1;
+    }
+
     return srExtra(algorithm, seed) * 2 - 1;
 };
+
+export const sre = srExtra;
 
 export const floorCeiling = (num: number, floor: number, ceiling: number) => {
     return Math.min(Math.max(num, floor), ceiling);
