@@ -26,23 +26,23 @@ const sketch = (p5: P5) => {
     let seed = Math.floor(Math.random() * 1000000000000000).toString();
     let newSeed = seed;
 
-    const charA = parseInt(seed[0] + seed[1]);
-    const charB = parseInt(seed[2] + seed[3]);
-    const charC = parseInt(seed[4] + seed[5]);
-    const charD = parseInt(seed[6] + seed[7]);
-    const charE = parseInt(seed[8] + seed[9]);
-    const charF = parseInt(seed[10] + seed[11]);
-    const charG = parseInt(seed[12] + seed[13]);
-    const charH = parseInt(seed[14] + seed[15]);
+    let charA = parseInt(seed[0] + seed[1]);
+    let charB = parseInt(seed[2] + seed[3]);
+    let charC = parseInt(seed[4] + seed[5]);
+    let charD = parseInt(seed[6] + seed[7]);
+    let charE = parseInt(seed[8] + seed[9]);
+    let charF = parseInt(seed[10] + seed[11]);
+    let charG = parseInt(seed[12] + seed[13]);
+    let charH = parseInt(seed[14] + seed[15]);
 
-    const seedA = charA.toString();
-    const seedB = charB.toString();
-    const seedC = charC.toString();
-    const seedD = charD.toString();
-    const seedE = charE.toString();
-    const seedF = charF.toString();
-    const seedG = charG.toString();
-    const seedH = charH.toString();
+    let seedA = charA.toString();
+    let seedB = charB.toString();
+    let seedC = charC.toString();
+    let seedD = charD.toString();
+    let seedE = charE.toString();
+    let seedF = charF.toString();
+    let seedG = charG.toString();
+    let seedH = charH.toString();
 
     let linesDirection: "down-right" | "up-right" =
         charA > 50 ? "down-right" : "up-right";
@@ -59,6 +59,24 @@ const sketch = (p5: P5) => {
     let rectanglesDrawn = false;
 
     function setupFromSeed() {
+        charA = parseInt(seed[0] + seed[1]);
+        charB = parseInt(seed[2] + seed[3]);
+        charC = parseInt(seed[4] + seed[5]);
+        charD = parseInt(seed[6] + seed[7]);
+        charE = parseInt(seed[8] + seed[9]);
+        charF = parseInt(seed[10] + seed[11]);
+        charG = parseInt(seed[12] + seed[13]);
+        charH = parseInt(seed[14] + seed[15]);
+
+        seedA = charA.toString();
+        seedB = charB.toString();
+        seedC = charC.toString();
+        seedD = charD.toString();
+        seedE = charE.toString();
+        seedF = charF.toString();
+        seedG = charG.toString();
+        seedH = charH.toString();
+
         const htmlseed = document.getElementById("info-seed");
         if (htmlseed) {
             htmlseed.innerHTML = seed;
@@ -95,7 +113,7 @@ const sketch = (p5: P5) => {
             htmlstyle.innerHTML = styleName;
         }
 
-        nLineAgents = 50 + Math.floor(charB / 2);
+        nLineAgents = 30 + Math.floor(charB / 1.6);
         console.log("line agents:", nLineAgents);
     }
 

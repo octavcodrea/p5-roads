@@ -27,6 +27,7 @@ export const paintDrop = (params: {
     sides?: number;
     variance?: number;
     opacity?: number;
+    frameCount?: number;
 }) => {
     const { p5, x, y, brushSize, sides, variance, opacity, mode } = params;
     const sidesToUse = sides || 24;
@@ -34,15 +35,14 @@ export const paintDrop = (params: {
     const opacityToUse = opacity && opacity >= 0 && opacity <= 1 ? opacity : 1;
     const stepsToUse = params.steps || 24;
 
+    const fc = params.frameCount || p5.frameCount;
+
     const angleStep = 6.28 / sidesToUse;
 
     let colorToUse = params.color;
     const opacityStep = opacityToUse * (1 / stepsToUse);
-    // console.log("muie:", opacityStep);
 
     colorToUse.setAlpha(opacityStep);
-
-    // console.log("lalala:", colorToUse);
 
     for (let j = 0; j < stepsToUse; j++) {
         p5.blendMode(mode || p5.BLEND);
@@ -51,7 +51,7 @@ export const paintDrop = (params: {
         p5.beginShape();
         for (let i = 0; i < sidesToUse; i++) {
             const angle = i * angleStep;
-            const rand = srnExtra(x + y, i.toString() + p5.frameCount);
+            const rand = srnExtra(x + y, i.toString() + fc);
             const distance = brushSize * (1 + rand * varianceToUse);
             const point = calculatePointFromAngle({
                 angle: angle,
@@ -80,6 +80,7 @@ export function brushstrokePencil(params: {
 
     stipplePositionRandomness?: number;
     stippleSizeRandomness?: number;
+    frameCount?: number;
 }) {
     const {
         p5,
@@ -94,6 +95,8 @@ export function brushstrokePencil(params: {
     } = params;
     const d = Math.min(density, 1);
     const stippleRows = Math.max(2, Math.ceil((brushSize / stippleSize) * d));
+
+    const fc = params.frameCount || p5.frameCount;
 
     for (let i = 0; i < stippleRows / 2; i++) {
         const stipplesInRow = Math.floor(2 * Math.PI * i);
@@ -114,24 +117,23 @@ export function brushstrokePencil(params: {
                 : p5.color(addHSVToRGBACode(color.toString(), h, 0, v));
 
         for (let j = 0; j < stipplesInRow; j++) {
-            if (sr(i.toString() + j.toString() + p5.frameCount) > density)
-                continue;
+            if (sr(i.toString() + j.toString() + fc) > density) continue;
             const randX =
                 stipplePositionRandomness !== undefined
                     ? stipplePositionRandomness *
-                      srnExtra(x + j, x.toString() + i + j + p5.frameCount)
+                      srnExtra(x + j, x.toString() + i + j + fc)
                     : 0;
 
             const randY =
                 stipplePositionRandomness !== undefined
                     ? stipplePositionRandomness *
-                      srnExtra(y + j, y.toString() + i + j + p5.frameCount)
+                      srnExtra(y + j, y.toString() + i + j + fc)
                     : 0;
 
             const randSize =
                 stippleSizeRandomness !== undefined
                     ? stippleSizeRandomness *
-                      srnExtra(x + j, i.toString() + j + p5.frameCount)
+                      srnExtra(x + j, i.toString() + j + fc)
                     : 0;
 
             const stippleX =
@@ -159,13 +161,13 @@ export function brushstrokePencil(params: {
         }
     }
 
-    if (sr(p5.frameCount) > density) {
+    if (sr(fc) > density) {
         let newX = x;
         let newY = y;
 
         if (stipplePositionRandomness !== undefined) {
-            const randX = srnExtra(x, x.toString() + p5.frameCount);
-            const randY = srnExtra(y, y.toString() + p5.frameCount);
+            const randX = srnExtra(x, x.toString() + fc);
+            const randY = srnExtra(y, y.toString() + fc);
             newX += stipplePositionRandomness * randX;
             newY += stipplePositionRandomness * randY;
         }
@@ -213,8 +215,10 @@ export function brushstrokeArea(brushParams: {
     let xVel = 0;
     let yVel = 0;
 
-    const xPos = x + Math.sin(frameCount / 10 + angle) * brushAreaSize;
-    const yPos = y + Math.cos(frameCount / 10 + angle) * brushAreaSize;
+    const fc = frameCount || p5.frameCount;
+
+    const xPos = x + Math.sin(fc / 10 + angle) * brushAreaSize;
+    const yPos = y + Math.cos(fc / 10 + angle) * brushAreaSize;
 
     switch (brushType) {
         case "pencil":
@@ -272,7 +276,12 @@ export function brushstrokeLine(brushParams: {
         brushParams.brushProps;
 
     let angle = directionAngle ?? 0;
-    const steps = Math.min(10, brushStrokeWidth / u(2) / (stippleScale ?? 1));
+    const steps = Math.min(
+        10,
+        Math.max(brushStrokeWidth / u(2) / (stippleScale ?? 1), 2)
+    );
+
+    const fc = frameCount || p5.frameCount;
 
     const pStart = calculatePointFromAngle({
         originX: x,
@@ -318,9 +327,7 @@ export function brushstrokeLine(brushParams: {
 
                 let selectedColor =
                     colors[
-                        Math.floor(
-                            sr(i.toString() + frameCount + i) * colors.length
-                        )
+                        Math.floor(sr(i.toString() + fc + i) * colors.length)
                     ];
 
                 let c =
@@ -339,8 +346,8 @@ export function brushstrokeLine(brushParams: {
                 p5.stroke(c);
 
                 if (stipplePositionRandomness !== undefined) {
-                    const randX = srnExtra(x, x.toString() + p5.frameCount + i);
-                    const randY = srnExtra(y, y.toString() + p5.frameCount + i);
+                    const randX = srnExtra(x, x.toString() + fc + i);
+                    const randY = srnExtra(y, y.toString() + fc + i);
 
                     p5.line(
                         xStart + randX,
@@ -350,16 +357,13 @@ export function brushstrokeLine(brushParams: {
                     );
 
                     if (drip !== undefined) {
-                        if (
-                            sr(drip.toString() + randX + randY + frameCount) >
-                            0.99
-                        ) {
+                        if (sr(drip.toString() + randX + randY + fc) > 0.99) {
                             const offsetX =
-                                srnExtra(x, x.toString() + p5.frameCount + i) *
+                                srnExtra(x, x.toString() + fc + i) *
                                 brushStrokeWidth;
 
                             const offsetY =
-                                srnExtra(y, y.toString() + p5.frameCount + i) *
+                                srnExtra(y, y.toString() + fc + i) *
                                 brushStrokeWidth;
 
                             p5.line(
@@ -377,10 +381,7 @@ export function brushstrokeLine(brushParams: {
                         p5.strokeWeight(
                             (brushStrokeWidth / steps) *
                                 (1 +
-                                    srnExtra(
-                                        x,
-                                        x.toString() + p5.frameCount + i
-                                    ) *
+                                    srnExtra(x, x.toString() + fc + i) *
                                         stippleSizeRandomness)
                         );
                     }

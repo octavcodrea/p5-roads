@@ -466,30 +466,6 @@ export class RectangleStripAgent {
                         : 0) +
                     randY;
 
-                // brushstrokeRectangle({
-                //     p5: p5,
-                //     color: color,
-                //     x1: x,
-                //     y1: y,
-                //     x2: x + width,
-                //     y2: y + height,
-
-                //     blendMode: p5.BLEND,
-
-                //     brushProps: {
-                //         // brushType: "paintDrop",
-
-                //         brushPositionRandomness: brushPositionRandomness,
-                //         brushSizeRandomness: brushSizeRandomness,
-
-                //         brushSize: brushScale ?? 10,
-                //         brushStippleSize: brushStippleSize ?? 2,
-
-                //         stipplePositionRandomness: brushStippleRandomness,
-                //         stippleSizeRandomness: brushStippleRandomness,
-                //     },
-                // });
-
                 linesRectangle({
                     p5: p5,
                     color: color,
@@ -592,8 +568,6 @@ export class LineAgent {
         this.step = 1;
         this.removeAgent = params.removeAgent;
 
-        console.log("seed:", seed);
-
         if (this.agentIndex % 5 === 0) {
             this.type = "pencil";
             this.layer = +1;
@@ -665,16 +639,6 @@ export class LineAgent {
             this.removeAgent(this);
         }
 
-        // if (this.p.y < border || this.p.y > p5.height - border) {
-        //     this.direction *= -p5.random(0.9, 1.1);
-        // }
-
-        // if (this.colorIndex >= gradient.length) {
-        //     this.colorIndex = 0;
-        // } else {
-        //     this.colorIndex += 0.1;
-        // }
-
         if (this.type === "pencil") {
             //blend mode
             // p5.blendMode(p5.MULTIPLY);
@@ -698,6 +662,7 @@ export class LineAgent {
                 stippleSize: u(1),
                 stipplePositionRandomness: u(2),
                 stippleSizeRandomness: u(1),
+                frameCount: p5.frameCount - this.deltaTime,
             });
         } else if (this.type === "pen") {
             //blend mode
@@ -775,6 +740,7 @@ export class LineAgent {
                 brushProps: {
                     brushStrokeWidth: this.strokeWidth,
                     stipplePositionRandomness: u(5),
+                    // stippleScale: u(0.5),
                 },
                 brushType: "random",
                 colors: colors,

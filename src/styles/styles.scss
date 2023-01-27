@@ -48,6 +48,11 @@ button {
             font-size: 2vh;
             padding: 0.5vh;
         }
+
+        #new-seed {
+            display: flex;
+            flex-direction: column;
+        }
     }
 }
 
