@@ -36,39 +36,76 @@ const Palettes: PaletteType[] = [
     //     ],
     // },
 
+    // {
+    //     background: "#DDDDCC",
+    //     accent: "#922f54",
+    //     accentDark: "#666b85",
+    //     pencilColor: "#ada7a4",
+
+    //     trianglesColor: "#cfcfc4",
+    //     stripLinesColor: "#fbfbfb",
+    //     name: "Dahlia",
+
+    //     colorsA: [
+    //         { color: "#d0c66d", opacity: 1 },
+    //         { color: "#d24b64", opacity: 1 },
+    //         { color: "#574D62", opacity: 1 },
+    //         { color: "#4badc3", opacity: 1 },
+    //     ],
+    //     colorsB: [
+    //         { color: "#E58263", opacity: 1 },
+    //         { color: "#C32E51", opacity: 1 },
+    //         { color: "#524576", opacity: 1 },
+    //         { color: "#2A6D93", opacity: 1 },
+    //     ],
+    //     colorsC: [
+    //         { color: "#D7481B", opacity: 1 },
+    //         { color: "#8e1f48", opacity: 1 },
+    //         { color: "#3c2c68", opacity: 1 },
+    //         { color: "#284a71", opacity: 1 },
+    //     ],
+    //     colorsD: [
+    //         { color: "#2B968F", opacity: 1 },
+    //         { color: "#27698E", opacity: 1 },
+    //         { color: "#851C3C", opacity: 1 },
+    //         { color: "#8C81A4", opacity: 1 },
+    //     ],
+    // },
+
     {
-        background: "#DDDDCC",
-        accent: "#922f54",
-        accentDark: "#666b85",
-        pencilColor: "#ada7a4",
+        background: "#E4E4DD",
+        accent: "#255A8B",
+        accentDark: "#5078aa",
+        pencilColor: "#aba2a0",
 
-        trianglesColor: "#cfcfc4",
-        stripLinesColor: "#fbfbfb",
-        name: "Dahlia",
-
+        trianglesColor: "#dcd7d6",
+        name: "Cerulean",
+        stripLinesColor: "#fcfcfd",
         colorsA: [
-            { color: "#d0c66d", opacity: 1 },
-            { color: "#d24b64", opacity: 1 },
-            { color: "#574D62", opacity: 1 },
-            { color: "#4badc3", opacity: 1 },
+            { color: "#91CED6", opacity: 1 },
+            { color: "#b3ccc6", opacity: 1 },
+            { color: "#6ea7b9", opacity: 1 },
+            { color: "#e6997a", opacity: 1 },
         ],
+
         colorsB: [
-            { color: "#E58263", opacity: 1 },
-            { color: "#C32E51", opacity: 1 },
-            { color: "#524576", opacity: 1 },
-            { color: "#2A6D93", opacity: 1 },
+            { color: "#358eac", opacity: 1 },
+            { color: "#5bbfcd", opacity: 1 },
+            { color: "#87aba3", opacity: 1 },
+            { color: "#c97880", opacity: 1 },
         ],
         colorsC: [
-            { color: "#D7481B", opacity: 1 },
-            { color: "#8e1f48", opacity: 1 },
-            { color: "#3c2c68", opacity: 1 },
-            { color: "#284a71", opacity: 1 },
+            { color: "#296689", opacity: 1 },
+            { color: "#3097C2", opacity: 1 },
+            { color: "#5f7c7a", opacity: 1 },
+            { color: "#92354b", opacity: 1 },
         ],
+
         colorsD: [
-            { color: "#2B968F", opacity: 1 },
-            { color: "#27698E", opacity: 1 },
-            { color: "#851C3C", opacity: 1 },
-            { color: "#8C81A4", opacity: 1 },
+            { color: "#EEAF66", opacity: 1 },
+            { color: "#C67344", opacity: 1 },
+            { color: "#BDA299", opacity: 1 },
+            { color: "#DB6262", opacity: 1 },
         ],
     },
 ];

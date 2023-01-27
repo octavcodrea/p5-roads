@@ -4,7 +4,7 @@ import noiseColor from "./assets/images/noise-color.png";
 import noiseMono from "./assets/images/noise-mono.png";
 import Palettes from "./assets/palettes";
 import { hexToRgba, mapGradient, sr, sre, srExtra } from "./utils/common";
-import { brushstrokePencil, brushstrokeRectangle } from "./utils/p5utils";
+import { brushstrokePencil, brushstrokeRectangle, map } from "./utils/p5utils";
 //import vanilla zustand store
 import { store } from "./store";
 
@@ -113,7 +113,7 @@ const sketch = (p5: P5) => {
             htmlstyle.innerHTML = styleName;
         }
 
-        nLineAgents = 30 + Math.floor(charB / 1.6);
+        nLineAgents = 40 + Math.floor(charB / 1.8);
         console.log("line agents:", nLineAgents);
     }
 
@@ -224,6 +224,9 @@ const sketch = (p5: P5) => {
                         mode: charC % 3 === 0 ? "straight" : "smooth",
                         scale: scale,
                         deltaTime: deltaTime,
+                        density: 0.6 + 0.4 * map(charB, 0, 99, 0, 1, "linear"),
+                        stipplePositionRandomness:
+                            u(30) * map(charC, 0, 99, 0, 1, "exp"),
                     })
                 );
             }
@@ -301,15 +304,6 @@ const sketch = (p5: P5) => {
 
         doSetup();
 
-        //create button to reset
-        const resetButton = document.createElement("button");
-        resetButton.id = "reset-button";
-        resetButton.innerHTML = "Reset";
-        resetButton.onclick = () => {
-            setupFromSeed();
-            doSetup();
-        };
-
         const htmlnewseed = document.getElementById("new-seed");
         if (htmlnewseed) {
             if (!document.getElementById("new-seed-button")) {
@@ -326,7 +320,38 @@ const sketch = (p5: P5) => {
             }
 
             if (!document.getElementById("reset-button")) {
+                //create button to reset
+                const resetButton = document.createElement("button");
+                resetButton.id = "reset-button";
+                resetButton.innerHTML = "Reset";
+                resetButton.onclick = () => {
+                    setupFromSeed();
+                    doSetup();
+                };
+
                 htmlnewseed.appendChild(resetButton);
+            }
+
+            if (!document.getElementById("generate-button")) {
+                //create generated button
+                const generateButton = document.createElement("button");
+                generateButton.id = "generate-button";
+                generateButton.innerHTML = "Generate";
+                generateButton.onclick = () => {
+                    seed = Math.floor(
+                        Math.random() * 1000000000000000
+                    ).toString();
+                    setupFromSeed();
+                    doSetup();
+
+                    const seedInput = document.getElementById("new-seed-input");
+                    if (seedInput) {
+                        //@ts-ignore
+                        seedInput.value = seed;
+                    }
+                };
+
+                htmlnewseed.appendChild(generateButton);
             }
         }
     };

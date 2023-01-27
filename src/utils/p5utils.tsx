@@ -7,7 +7,9 @@ import {
     hexToRgb,
     hsvToRgb,
     rgbToHsv,
+    rtd,
     sr,
+    sre,
     srExtra,
     srn,
     srnExtra,
@@ -249,6 +251,7 @@ export function brushstrokeLine(brushParams: {
         brushStrokeWidth: number;
         stipplePositionRandomness?: number;
         stippleScale?: number;
+        density?: number;
     };
 
     hueRandomness?: number;
@@ -272,7 +275,7 @@ export function brushstrokeLine(brushParams: {
         stippleSizeRandomness,
     } = brushParams;
 
-    let { brushStrokeWidth, stipplePositionRandomness, stippleScale } =
+    let { brushStrokeWidth, stipplePositionRandomness, stippleScale, density } =
         brushParams.brushProps;
 
     let angle = directionAngle ?? 0;
@@ -303,6 +306,10 @@ export function brushstrokeLine(brushParams: {
         case "random":
             p5.strokeWeight(brushStrokeWidth / steps);
             for (let i = 1; i < steps; i++) {
+                if (density !== undefined && sre(i, fc) > density) {
+                    continue;
+                }
+
                 const xStart =
                     (pStart.x * (steps - i)) / steps + (pEnd.x * i) / steps;
 
@@ -346,8 +353,12 @@ export function brushstrokeLine(brushParams: {
                 p5.stroke(c);
 
                 if (stipplePositionRandomness !== undefined) {
-                    const randX = srnExtra(x, x.toString() + fc + i);
-                    const randY = srnExtra(y, y.toString() + fc + i);
+                    const randX =
+                        srnExtra(x, x.toString() + fc + i) *
+                        stipplePositionRandomness;
+                    const randY =
+                        srnExtra(y, y.toString() + fc + i) *
+                        stipplePositionRandomness;
 
                     p5.line(
                         xStart + randX,
@@ -355,6 +366,18 @@ export function brushstrokeLine(brushParams: {
                         xEnd + randX,
                         yEnd + randY
                     );
+
+                    // polygonFromLine({
+                    //     p5: p5,
+                    //     x1: xStart + randX,
+                    //     y1: yStart + randY,
+                    //     x2: xEnd + randX,
+                    //     y2: yEnd + randY,
+                    //     color: c,
+                    //     width: brushStrokeWidth / steps,
+                    //     sides: 8,
+                    //     randomness: brushStrokeWidth / 64,
+                    // });
 
                     if (drip !== undefined) {
                         if (sr(drip.toString() + randX + randY + fc) > 0.99) {
@@ -372,6 +395,18 @@ export function brushstrokeLine(brushParams: {
                                 xEnd + offsetX,
                                 yEnd + offsetY
                             );
+
+                            // polygonFromLine({
+                            //     p5: p5,
+                            //     x1: xStart + offsetX,
+                            //     y1: yStart + offsetY,
+                            //     x2: xEnd + offsetX,
+                            //     y2: yEnd + offsetY,
+                            //     color: c,
+                            //     width: brushStrokeWidth / steps,
+                            //     sides: 6,
+                            //     randomness: brushStrokeWidth / 64,
+                            // });
                         }
                     } else {
                         p5.line(xStart, yStart, xEnd, yEnd);
@@ -837,32 +872,155 @@ export const getVectorIntensity = (vector: P5.Vector) => {
     return Math.sqrt(vector.x ** 2 + vector.y ** 2);
 };
 
-// export const polygonFromLine = (params: {
-//     p5: P5;
-//     x1: number;
-//     y1: number;
-//     x2: number;
-//     y2: number;
-//     width: number;
-//     color: string;
-//     sides?: number;
-//     steps?: number;
-//     randomness?: number;
-// }) => {
-//     const {
-//         p5,
-//         x1,
-//         y1,
-//         x2,
-//         y2,
-//         width,
-//         color,
-//         sides = 3,
-//         steps = 10,
-//         randomness = 0,
-//     } = params;
+export const polygonFromLine = (params: {
+    p5: P5;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    width: number;
+    color: P5.Color;
+    sides?: number;
+    steps?: number;
+    randomness?: number;
+}) => {
+    const {
+        p5,
+        x1,
+        y1,
+        x2,
+        y2,
+        width,
+        color,
+        sides = 6,
+        steps = 1,
+        randomness = 0,
+    } = params;
 
-// }
+    p5.angleMode(p5.RADIANS);
+
+    const angleBetweenPoints = p5.atan2(y2 - y1, x2 - x1);
+    const distanceBetweenPoints = p5.dist(x1, y1, x2, y2);
+
+    let p0 = { x: 0, y: 0 };
+    let p1 = { x: 0, y: 0 };
+    let distanceBetweenSidePoints = 0;
+
+    const localNoOfSides =
+        Math.round(sides / 2) % 2 === 0
+            ? Math.round(sides / 2) + 1
+            : Math.round(sides / 2) + 2;
+
+    for (let i = 0; i < steps; i++) {
+        p5.fill(color);
+        p5.noStroke();
+
+        p5.beginShape();
+
+        for (let j = 1; j <= localNoOfSides; j++) {
+            const angle = angleBetweenPoints + (j * p5.TWO_PI) / sides;
+
+            const { x, y } = calculatePointFromAngle({
+                originX: x1,
+                originY: y1,
+                angle: angle,
+                distance: width / 2,
+                mode: "radians",
+            });
+
+            const randX = srn(x.toString() + y.toString()) * randomness;
+            const randY = srn(y.toString() + x.toString()) * randomness;
+
+            p5.vertex(x + randX, y + randY);
+
+            if (j === 1) {
+                p0 = { x, y };
+            }
+
+            if (j === 2) {
+                p1 = { x, y };
+                distanceBetweenSidePoints = p5.dist(p0.x, p0.y, p1.x, p1.y);
+            }
+        }
+
+        let noOfSidePoints = Math.round(
+            distanceBetweenPoints / distanceBetweenSidePoints
+        );
+
+        if (noOfSidePoints < 2) {
+            noOfSidePoints = 2;
+        }
+
+        for (let j = 0; j < noOfSidePoints; j++) {
+            const { x: originX, y: originY } = calculatePointFromAngle({
+                originX: x1,
+                originY: y1,
+                angle: angleBetweenPoints,
+                distance: width / 4 + distanceBetweenSidePoints * j,
+                mode: "radians",
+            });
+
+            const angle = angleBetweenPoints - p5.PI / 2;
+
+            const { x, y } = calculatePointFromAngle({
+                originX: originX,
+                originY: originY,
+                angle: angle,
+                distance: width / 2,
+                mode: "radians",
+            });
+
+            const randX = srn(x.toString() + y.toString()) * randomness;
+            const randY = srn(y.toString() + x.toString()) * randomness;
+
+            p5.vertex(x + randX, y + randY);
+        }
+
+        for (let j = 1; j <= localNoOfSides; j++) {
+            const angle = angleBetweenPoints + (j * p5.TWO_PI) / sides + p5.PI;
+
+            const { x, y } = calculatePointFromAngle({
+                originX: x2,
+                originY: y2,
+                angle: angle,
+                distance: width / 2,
+                mode: "radians",
+            });
+
+            const randX = srn(x.toString() + y.toString()) * randomness;
+            const randY = srn(y.toString() + x.toString()) * randomness;
+
+            p5.vertex(x + randX, y + randY);
+        }
+
+        for (let j = 0; j < noOfSidePoints; j++) {
+            const { x: originX, y: originY } = calculatePointFromAngle({
+                originX: x2,
+                originY: y2,
+                angle: angleBetweenPoints + p5.PI,
+                distance: width / 4 + distanceBetweenSidePoints * j,
+                mode: "radians",
+            });
+
+            const angle = angleBetweenPoints + p5.PI / 2;
+
+            const { x, y } = calculatePointFromAngle({
+                originX: originX,
+                originY: originY,
+                angle: angle,
+                distance: width / 2,
+                mode: "radians",
+            });
+
+            const randX = srn(x.toString() + y.toString()) * randomness;
+            const randY = srn(y.toString() + x.toString()) * randomness;
+
+            p5.vertex(x + randX, y + randY);
+        }
+
+        p5.endShape(p5.CLOSE);
+    }
+};
 
 export const polygon = (params: {
     p5: P5;
@@ -1021,4 +1179,22 @@ export const polygonRough = (params: {
     p5.noStroke();
     p5.endShape(p5.CLOSE);
     p5.pop();
+};
+
+export const map = (
+    value: number,
+    start1: number,
+    stop1: number,
+    start2: number,
+    stop2: number,
+    mode?: "linear" | "exp"
+) => {
+    if (mode === "exp") {
+        return (
+            start2 +
+            (stop2 - start2) * Math.pow((value - start1) / (stop1 - start1), 2)
+        );
+    }
+
+    return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
 };

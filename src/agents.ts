@@ -514,6 +514,8 @@ export class LineAgent {
     mode: "straight" | "smooth";
     vector: P5.Vector;
     vectorStep: number;
+    density?: number;
+    stipplePositionRandomness?: number;
 
     removeAgent: (agent: LineAgent) => void;
     deltaTime: number;
@@ -532,6 +534,8 @@ export class LineAgent {
         mode?: "straight" | "smooth";
         removeAgent: (agent: LineAgent) => void;
         deltaTime: number;
+        density?: number;
+        stipplePositionRandomness?: number;
     }) {
         const {
             p5,
@@ -560,6 +564,8 @@ export class LineAgent {
         this.colorIndex = 0;
         this.layer = 0;
         this.type = "default";
+        this.density = params.density;
+        this.stipplePositionRandomness = params.stipplePositionRandomness;
 
         this.mode = params.mode ?? "smooth";
 
@@ -733,14 +739,26 @@ export class LineAgent {
                 colors = colors.splice(0, 1);
             }
 
+            let posRandomness = this.stipplePositionRandomness ?? 0;
+            if (this.stipplePositionRandomness) {
+                posRandomness = p5.map(
+                    this.strokeWidth,
+                    0,
+                    u(50),
+                    0,
+                    this.stipplePositionRandomness
+                );
+            }
+
             brushstrokeLine({
                 p5: p5,
                 x: this.p.x,
                 y: this.p.y,
                 brushProps: {
                     brushStrokeWidth: this.strokeWidth,
-                    stipplePositionRandomness: u(5),
-                    // stippleScale: u(0.5),
+                    stipplePositionRandomness: posRandomness,
+                    density: this.density,
+                    // stippleScale: u(1),
                 },
                 brushType: "random",
                 colors: colors,
