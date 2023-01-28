@@ -20,4 +20,6 @@ export type PaletteType = {
     colorsB: ColorObject[];
     colorsC: ColorObject[];
     colorsD: ColorObject[];
+
+    isDark?: boolean;
 };

@@ -3,7 +3,14 @@ import { LineAgent, RectangleStripAgent, TriangleStripAgent } from "./agents";
 import noiseColor from "./assets/images/noise-color.png";
 import noiseMono from "./assets/images/noise-mono.png";
 import Palettes from "./assets/palettes";
-import { hexToRgba, mapGradient, sr, sre, srExtra } from "./utils/common";
+import {
+    hexToRgba,
+    mapGradient,
+    roundDecimals,
+    sr,
+    sre,
+    srExtra,
+} from "./utils/common";
 import { brushstrokePencil, brushstrokeRectangle, map } from "./utils/p5utils";
 //import vanilla zustand store
 import { store } from "./store";
@@ -109,8 +116,14 @@ const sketch = (p5: P5) => {
 
         const htmlstyle = document.getElementById("info-style");
         if (htmlstyle) {
-            const styleName = charC % 3 === 0 ? "straight" : "smooth";
+            const styleName = charC % 3 === 0 ? "Sharp" : "Smooth";
             htmlstyle.innerHTML = styleName;
+        }
+
+        const htmlsizevariance = document.getElementById("info-size");
+        if (htmlsizevariance) {
+            const sizeName = charE.toString();
+            htmlsizevariance.innerHTML = sizeName;
         }
 
         nLineAgents = 40 + Math.floor(charB / 1.8);
@@ -221,12 +234,16 @@ const sketch = (p5: P5) => {
                         agentIndex: lineAgents.length,
                         colors: colors,
                         removeAgent: removeAgent,
-                        mode: charC % 3 === 0 ? "straight" : "smooth",
+                        mode: charC % 3 === 0 ? "sharp" : "smooth",
                         scale: scale,
                         deltaTime: deltaTime,
                         density: 0.6 + 0.4 * map(charB, 0, 99, 0, 1, "linear"),
                         stipplePositionRandomness:
                             u(30) * map(charC, 0, 99, 0, 1, "exp"),
+                        sizeVariance: roundDecimals(
+                            map(charE, 0, 99, 0.01, 0.2, "exp"),
+                            3
+                        ),
                     })
                 );
             }
@@ -452,6 +469,9 @@ const sketch = (p5: P5) => {
                         stipplePositionRandomness: u(6),
                         stippleSizeRandomness: u(1),
                     },
+                    blendMode: Palettes[selectedPalette].isDark
+                        ? p5.OVERLAY
+                        : undefined,
                 });
             }
 
@@ -461,7 +481,9 @@ const sketch = (p5: P5) => {
 
                 brushstrokePencil({
                     p5: p5,
-                    color: p5.color("#222222"),
+                    color: Palettes[selectedPalette].isDark
+                        ? p5.color("#777777")
+                        : p5.color("#222222"),
                     x: x1,
                     y: y1,
 

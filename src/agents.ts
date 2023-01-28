@@ -118,7 +118,9 @@ export class TriangleStripAgent {
 
         const randSize =
             trigSizeRandomness !== undefined ? srn(x1) * trigSizeRandomness : 0;
-        p5.blendMode(p5.DARKEST);
+        p5.blendMode(
+            Palettes[selectedPalette].isDark ? p5.LIGHTEST : p5.DARKEST
+        );
 
         if (x2 !== undefined && y2 !== undefined) {
             const rectHeight =
@@ -425,7 +427,9 @@ export class RectangleStripAgent {
                     x2: x + rectWidth,
                     y2: y + rectHeight,
 
-                    blendMode: p5.MULTIPLY,
+                    blendMode: Palettes[selectedPalette].isDark
+                        ? p5.LIGHTEST
+                        : p5.MULTIPLY,
 
                     lineProps: {
                         density: 0.7,
@@ -511,11 +515,12 @@ export class LineAgent {
     layer: number;
     type: string;
 
-    mode: "straight" | "smooth";
+    mode: "sharp" | "smooth";
     vector: P5.Vector;
     vectorStep: number;
     density?: number;
     stipplePositionRandomness?: number;
+    sizeVariance?: number;
 
     removeAgent: (agent: LineAgent) => void;
     deltaTime: number;
@@ -531,11 +536,12 @@ export class LineAgent {
         scale: number;
         agentIndex?: number;
         colors?: P5.Color[];
-        mode?: "straight" | "smooth";
+        mode?: "sharp" | "smooth";
         removeAgent: (agent: LineAgent) => void;
         deltaTime: number;
         density?: number;
         stipplePositionRandomness?: number;
+        sizeVariance?: number;
     }) {
         const {
             p5,
@@ -566,6 +572,7 @@ export class LineAgent {
         this.type = "default";
         this.density = params.density;
         this.stipplePositionRandomness = params.stipplePositionRandomness;
+        this.sizeVariance = params.sizeVariance;
 
         this.mode = params.mode ?? "smooth";
 
@@ -596,6 +603,7 @@ export class LineAgent {
             this.seed
         );
         this.vectorStep = 10;
+        console.log("size variance: ", this.sizeVariance);
     }
 
     update() {
@@ -648,13 +656,15 @@ export class LineAgent {
         if (this.type === "pencil") {
             //blend mode
             // p5.blendMode(p5.MULTIPLY);
-            p5.blendMode(p5.DARKEST);
+            p5.blendMode(
+                Palettes[selectedPalette].isDark ? p5.LIGHTEST : p5.DARKEST
+            );
             const c = p5.color(
                 addHSV(
                     Palettes[selectedPalette].pencilColor,
                     0,
                     0,
-                    sr(seedfc, -0.3, 0.3)
+                    sr(seedfc, -0.2, 0.2)
                 )
             );
 
@@ -672,10 +682,13 @@ export class LineAgent {
             });
         } else if (this.type === "pen") {
             //blend mode
-            p5.blendMode(p5.DARKEST);
+            p5.blendMode(
+                Palettes[selectedPalette].isDark ? p5.LIGHTEST : p5.DARKEST
+            );
 
             this.strokeWidth = this.strokeWidth * sr(seedfc, 0.95, 1.05);
             if (this.strokeWidth > u(50)) this.strokeWidth *= 0.9;
+            if (this.strokeWidth < u(1)) this.strokeWidth *= 1.1;
             p5.strokeWeight(this.strokeWidth / 5);
 
             p5.stroke(Palettes[selectedPalette].accent);
@@ -683,7 +696,9 @@ export class LineAgent {
         } else if (this.type === "dashed-line") {
             if (((p5.frameCount - this.deltaTime) * 0.6) % 2 === 0) {
                 //blend mode
-                p5.blendMode(p5.DARKEST);
+                p5.blendMode(
+                    Palettes[selectedPalette].isDark ? p5.LIGHTEST : p5.DARKEST
+                );
 
                 this.strokeWidth =
                     this.strokeWidth * sre(1, seedfc, 0.95, 1.05);
@@ -695,7 +710,9 @@ export class LineAgent {
         } else if (this.type === "circles") {
             if (((p5.frameCount - this.deltaTime) * 0.1) % 2 === 0) {
                 //blend mode
-                p5.blendMode(p5.DARKEST);
+                p5.blendMode(
+                    Palettes[selectedPalette].isDark ? p5.LIGHTEST : p5.DARKEST
+                );
 
                 this.strokeWidth =
                     this.strokeWidth * sre(2, seedfc, 0.95, 1.05);
@@ -730,8 +747,17 @@ export class LineAgent {
             }
         } else {
             p5.blendMode(p5.BLEND);
-            this.strokeWidth = this.strokeWidth * sre(7, seedfc, 0.97, 1.03);
+            this.strokeWidth =
+                this.strokeWidth *
+                sre(
+                    7,
+                    this.agentIndex + seedfc,
+                    1 - (this.sizeVariance ?? 0.03),
+                    1 + (this.sizeVariance ?? 0.03)
+                );
+
             if (this.strokeWidth > u(50)) this.strokeWidth *= 0.9;
+            if (this.strokeWidth < u(2)) this.strokeWidth *= 1.1;
             p5.strokeWeight(this.strokeWidth);
 
             let colors = p5.shuffle(this.colors);

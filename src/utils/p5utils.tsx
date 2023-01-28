@@ -842,9 +842,6 @@ export function vector_field(
     const s = seed ?? "seed";
     const fc = frameCount ?? p5.frameCount;
 
-    let k1 = 2;
-    let k2 = 3;
-
     let vectorX =
         0.8 +
         p5.sin(srExtra(1, s) * 100 + fc * 0.01 * srExtra(1, s)) *
@@ -858,12 +855,6 @@ export function vector_field(
             0.8 *
             srExtra(4, s) +
         (p5.noise(x, y) - 0.5) * 4;
-
-    // litle trick to move from left to right
-
-    // if (u <= 0) {
-    //     u = -u;
-    // }
 
     return p5.createVector(vectorX * unit, vectorY * unit);
 }
