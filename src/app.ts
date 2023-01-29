@@ -84,6 +84,9 @@ const sketch = (p5: P5) => {
         seedG = charG.toString();
         seedH = charH.toString();
 
+        linesDirection = charA > 50 ? "down-right" : "up-right";
+        selectedPalette = Math.floor(Palettes.length * (charD / 100));
+
         const htmlseed = document.getElementById("info-seed");
         if (htmlseed) {
             htmlseed.innerHTML = seed;
@@ -108,26 +111,7 @@ const sketch = (p5: P5) => {
             }
         }
 
-        const htmlcolor = document.getElementById("info-color");
-        if (htmlcolor) {
-            const paletteName = Palettes[selectedPalette].name || "Unknown";
-            htmlcolor.innerHTML = paletteName;
-        }
-
-        const htmlstyle = document.getElementById("info-style");
-        if (htmlstyle) {
-            const styleName = charC % 3 === 0 ? "Sharp" : "Smooth";
-            htmlstyle.innerHTML = styleName;
-        }
-
-        const htmlsizevariance = document.getElementById("info-size");
-        if (htmlsizevariance) {
-            const sizeName = charE.toString();
-            htmlsizevariance.innerHTML = sizeName;
-        }
-
         nLineAgents = 40 + Math.floor(charB / 1.8);
-        console.log("line agents:", nLineAgents);
     }
 
     setupFromSeed();
@@ -317,6 +301,32 @@ const sketch = (p5: P5) => {
                     })
                 );
             }
+
+            const htmlcolor = document.getElementById("info-color");
+            if (htmlcolor) {
+                const paletteName = Palettes[selectedPalette].name || "Unknown";
+                htmlcolor.innerHTML = paletteName;
+            }
+
+            const htmlstyle = document.getElementById("info-style");
+            if (htmlstyle) {
+                const styleName = charC % 3 === 0 ? "Sharp" : "Smooth";
+                htmlstyle.innerHTML = styleName;
+            }
+
+            const htmlsizevariance = document.getElementById("info-size");
+            if (htmlsizevariance) {
+                const sizeName = charE.toString();
+                htmlsizevariance.innerHTML = sizeName;
+            }
+
+            const htmldirection = document.getElementById("info-direction");
+            if (htmldirection) {
+                const directionName = linesDirection;
+                htmldirection.innerHTML = directionName;
+            }
+
+            console.log("line agents:", nLineAgents);
         }
 
         doSetup();
@@ -465,6 +475,7 @@ const sketch = (p5: P5) => {
                         stipplePositionRandomness: u(2),
                         stippleSizeRandomness: u(1),
                     },
+                    frameCount: p5.frameCount - deltaTime,
                 });
             }
 
@@ -492,6 +503,7 @@ const sketch = (p5: P5) => {
                     blendMode: Palettes[selectedPalette].isDark
                         ? p5.OVERLAY
                         : undefined,
+                    frameCount: p5.frameCount - deltaTime,
                 });
             }
 
@@ -512,6 +524,7 @@ const sketch = (p5: P5) => {
                     stippleSize: u(0.4),
                     stipplePositionRandomness: u(8),
                     stippleSizeRandomness: 0,
+                    frameCount: p5.frameCount - deltaTime,
                 });
             }
 

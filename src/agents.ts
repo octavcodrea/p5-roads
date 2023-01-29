@@ -1,7 +1,7 @@
 import P5 from "p5";
 import { u } from "./app";
 import Palettes from "./assets/palettes";
-import { addHSV, sr, sre, srn } from "./utils/common";
+import { addHSV, seedShuffle, sr, sre, srn } from "./utils/common";
 import {
     angleFromVector,
     brushstrokeLine,
@@ -751,16 +751,16 @@ export class LineAgent {
                 this.strokeWidth *
                 sre(
                     7,
-                    this.agentIndex + seedfc,
+                    seedfc + this.agentIndex,
                     1 - (this.sizeVariance ?? 0.03),
                     1 + (this.sizeVariance ?? 0.03)
                 );
 
             if (this.strokeWidth > u(50)) this.strokeWidth *= 0.9;
-            if (this.strokeWidth < u(2)) this.strokeWidth *= 1.1;
+            if (this.strokeWidth < u(3)) this.strokeWidth *= 1.2;
             p5.strokeWeight(this.strokeWidth);
 
-            let colors = p5.shuffle(this.colors);
+            let colors = seedShuffle(this.colors, seedfc);
             if (sre(8, seedfc) > 0.8) {
                 colors = colors.splice(0, 1);
             }

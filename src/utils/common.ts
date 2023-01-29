@@ -1068,3 +1068,23 @@ export const addHSVToRGBACode = (
     const [r, g, b] = hsvToRgb(newH, newS, newV);
     return rgbToHex(Math.floor(r), Math.floor(g), Math.floor(b));
 };
+
+export const seedShuffle = (arrayToShuffle: any[], seed: number | string) => {
+    const shuffledArray = [...arrayToShuffle];
+    let m = shuffledArray.length;
+    let t;
+    let i;
+
+    // While there remain elements to shuffle…
+    while (m) {
+        // Pick a remaining element…
+        i = (sr(seed) * m--) >>> 0;
+
+        // And swap it with the current element.
+        t = shuffledArray[m];
+        shuffledArray[m] = shuffledArray[i];
+        shuffledArray[i] = t;
+    }
+
+    return shuffledArray;
+};

@@ -94,15 +94,16 @@ export function brushstrokePencil(params: {
         color,
         stipplePositionRandomness,
         stippleSizeRandomness,
+        frameCount,
     } = params;
     const d = Math.min(density, 1);
     const stippleRows = Math.max(2, Math.ceil((brushSize / stippleSize) * d));
 
-    const fc = params.frameCount || p5.frameCount;
+    const fc = frameCount || p5.frameCount;
 
     for (let i = 0; i < stippleRows / 2; i++) {
         const stipplesInRow = Math.floor(2 * Math.PI * i);
-        const angleStep = 6.28 / stipplesInRow;
+        const angleStep = 6.283 / stipplesInRow;
 
         let h =
             params.hueRandomness === 0 || params.hueRandomness === undefined
@@ -148,7 +149,6 @@ export function brushstrokePencil(params: {
 
             p5.fill(c);
             p5.noStroke();
-            // p5.ellipse(stippleX, stippleY, thisStippleSize, thisStippleSize);
             polygon({
                 p5: p5,
                 x: stippleX,
@@ -449,6 +449,8 @@ export const brushstrokeRectangle = (params: {
         brushPositionRandomness?: number;
         brushSizeRandomness?: number;
     };
+
+    frameCount?: number;
 }) => {
     const {
         p5,
@@ -460,6 +462,7 @@ export const brushstrokeRectangle = (params: {
         hueRandomness,
         valueRandomness,
         blendMode,
+        frameCount,
     } = params;
     const {
         brushSize,
@@ -534,6 +537,7 @@ export const brushstrokeRectangle = (params: {
                         stipplePositionRandomness: bStipplePositionRandomness,
                         stippleSizeRandomness: bStippleSizeRandomness,
                         density: 1,
+                        frameCount: frameCount,
                     });
                     break;
 
@@ -551,6 +555,8 @@ export const brushstrokeRectangle = (params: {
                         sides: 24,
                         steps: 24,
                         variance: 0.5,
+
+                        frameCount: frameCount,
                     });
                     break;
             }
