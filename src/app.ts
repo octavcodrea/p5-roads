@@ -241,7 +241,7 @@ const sketch = (p5: P5) => {
                         stipplePositionRandomness:
                             u(30) * map(charC, 0, 99, 0, 1, "exp"),
                         sizeVariance: roundDecimals(
-                            map(charE, 0, 99, 0.01, 0.2, "exp"),
+                            map(charE, 0, 99, 0.01, 0.15, "exp"),
                             3
                         ),
                     })
@@ -369,6 +369,26 @@ const sketch = (p5: P5) => {
                 };
 
                 htmlnewseed.appendChild(generateButton);
+            }
+
+            //download button
+            if (!document.getElementById("download-button")) {
+                const downloadButton = document.createElement("button");
+                downloadButton.id = "download-button";
+                downloadButton.innerHTML = "Download";
+                downloadButton.onclick = () => {
+                    //date for title
+                    p5.saveCanvas(
+                        `${new Date().toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                        })}-${seed.toString()}`,
+                        "png"
+                    );
+                };
+
+                htmlnewseed.appendChild(downloadButton);
             }
         }
     };
