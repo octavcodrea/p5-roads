@@ -1,7 +1,7 @@
 import P5 from "p5";
 import { u } from "./app";
 import Palettes from "./assets/palettes";
-import { addHSV, seedShuffle, sr, sre, srn } from "./utils/common";
+import { addHSV, seedShuffle, sr, sre, srn, srnExtra } from "./utils/common";
 import {
     angleFromVector,
     brushstrokeLine,
@@ -542,6 +542,7 @@ export class LineAgent {
         density?: number;
         stipplePositionRandomness?: number;
         sizeVariance?: number;
+        spawnSizeVariance?: number;
     }) {
         const {
             p5,
@@ -554,7 +555,12 @@ export class LineAgent {
             linesDirection,
             layer,
             scale,
+            spawnSizeVariance,
         } = params;
+
+        const spawnSizeVar = spawnSizeVariance
+            ? u(10) * spawnSizeVariance * srnExtra(agentIndex ?? 0, seed)
+            : 0;
 
         this.p5 = p5;
         this.deltaTime = params.deltaTime;
@@ -564,7 +570,8 @@ export class LineAgent {
         this.linesDirection = linesDirection;
         this.colors = colors ?? [p5.color("#000")];
         this.strokeWidth =
-            (u(16) + u(6) * p5.sin(p5.frameCount - this.deltaTime)) * scale;
+            (u(16) + u(6) * p5.sin(p5.frameCount - this.deltaTime)) * scale +
+            spawnSizeVar;
         this.seed = seed;
         this.scale = sr(seed, 1, 10);
         this.colorIndex = 0;

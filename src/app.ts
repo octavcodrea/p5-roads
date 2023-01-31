@@ -86,6 +86,7 @@ const sketch = (p5: P5) => {
 
         linesDirection = charA > 50 ? "down-right" : "up-right";
         selectedPalette = Math.floor(Palettes.length * (charD / 100));
+        rectanglesDrawn = false;
 
         const htmlseed = document.getElementById("info-seed");
         if (htmlseed) {
@@ -151,8 +152,6 @@ const sketch = (p5: P5) => {
             lineAgents = [];
             stripAgents = [];
             triangleAgents = [];
-
-            rectanglesDrawn = false;
 
             p5.blendMode(p5.BLEND);
 
@@ -223,11 +222,12 @@ const sketch = (p5: P5) => {
                         deltaTime: deltaTime,
                         density: 0.6 + 0.4 * map(charB, 0, 99, 0, 1, "linear"),
                         stipplePositionRandomness:
-                            u(30) * map(charC, 0, 99, 0, 1, "exp"),
+                            u(40) * map(charC, 0, 99, 0, 1, "exp"),
                         sizeVariance: roundDecimals(
-                            map(charE, 0, 99, 0.01, 0.15, "exp"),
+                            map(charE, 0, 99, 0.015, 0.15, "exp"),
                             3
                         ),
+                        spawnSizeVariance: map(charF, 0, 99, 0, 0.99, "exp"),
                     })
                 );
             }
