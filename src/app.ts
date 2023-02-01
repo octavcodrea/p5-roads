@@ -86,6 +86,7 @@ const sketch = (p5: P5) => {
 
         linesDirection = charA > 50 ? "down-right" : "up-right";
         selectedPalette = Math.floor(Palettes.length * (charD / 100));
+        store.setState({ selectedPalette: selectedPalette });
         rectanglesDrawn = false;
 
         const htmlseed = document.getElementById("info-seed");
@@ -537,10 +538,6 @@ const sketch = (p5: P5) => {
             }
         }
     };
-
-    // vector field function
-    // the painting agents follow the flow defined
-    // by this function
 };
 
 new P5(sketch);

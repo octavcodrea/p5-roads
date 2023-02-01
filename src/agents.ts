@@ -312,6 +312,8 @@ export class RectangleStripAgent {
 
         this.rectanglesDrawn = 0;
         this.removeAgent = params.removeAgent;
+
+        selectedPalette = getState().selectedPalette;
     }
 
     update() {
@@ -557,6 +559,8 @@ export class LineAgent {
             scale,
             spawnSizeVariance,
         } = params;
+
+        selectedPalette = getState().selectedPalette;
 
         const spawnSizeVar = spawnSizeVariance
             ? u(10) * spawnSizeVariance * srnExtra(agentIndex ?? 0, seed)
