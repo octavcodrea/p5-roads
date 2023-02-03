@@ -12,8 +12,8 @@ type Store = {
 export const store = create<Store>((set) => ({
     seed: "0123456789012345",
 
-    canvasWidth: 2000,
-    canvasHeight: 2400,
+    canvasWidth: 800,
+    canvasHeight: 1000,
 
     selectedPalette: 0,
 }));

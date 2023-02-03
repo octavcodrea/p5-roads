@@ -2,6 +2,10 @@ import P5 from "p5";
 import { LineAgent, RectangleStripAgent, TriangleStripAgent } from "./agents";
 import noiseColor from "./assets/images/noise-color.png";
 import noiseMono from "./assets/images/noise-mono.png";
+
+import noiseColorSmall from "./assets/images/noise-color-small.png";
+import noiseMonoSmall from "./assets/images/noise-mono-small.png";
+
 import Palettes from "./assets/palettes";
 import {
     hexToRgba,
@@ -134,8 +138,14 @@ const sketch = (p5: P5) => {
     let noiseImgMono: P5.Image;
 
     p5.preload = () => {
-        noiseImgColor = p5.loadImage(noiseColor);
-        noiseImgMono = p5.loadImage(noiseMono);
+        noiseImgColor =
+            p5.width < 1500
+                ? p5.loadImage(noiseColorSmall)
+                : p5.loadImage(noiseColor);
+        noiseImgMono =
+            p5.width < 1500
+                ? p5.loadImage(noiseMonoSmall)
+                : p5.loadImage(noiseMono);
 
         store.setState({ selectedPalette: selectedPalette });
     };
