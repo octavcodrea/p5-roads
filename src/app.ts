@@ -19,7 +19,7 @@ import { brushstrokePencil, brushstrokeRectangle, map } from "./utils/p5utils";
 //import vanilla zustand store
 import { store } from "./store";
 
-const { canvasWidth, canvasHeight } = store.getState();
+let { canvasWidth, canvasHeight, devMode } = store.getState();
 
 const unit = canvasWidth / 1000;
 let deltaTime = 0;
@@ -30,6 +30,15 @@ export function u(x: number) {
     } else {
         console.error("Error. u() only accepts numbers");
         return 0;
+    }
+}
+
+export function toggleDevMode() {
+    store.setState({ devMode: !store.getState().devMode });
+
+    const devmodeCheck = document.getElementById("devmode-check");
+    if (devmodeCheck && devmodeCheck instanceof HTMLInputElement) {
+        devmodeCheck.checked = store.getState().devMode;
     }
 }
 
@@ -91,6 +100,10 @@ const sketch = (p5: P5) => {
         linesDirection = charA > 50 ? "down-right" : "up-right";
         selectedPalette = Math.floor(Palettes.length * (charD / 100));
         store.setState({ selectedPalette: selectedPalette });
+
+        canvasWidth = store.getState().canvasWidth;
+        canvasHeight = store.getState().canvasHeight;
+
         rectanglesDrawn = false;
 
         const htmlseed = document.getElementById("info-seed");
@@ -115,6 +128,16 @@ const sketch = (p5: P5) => {
 
                 htmlnewseed.appendChild(newSeedInput);
             }
+        }
+
+        const htmlWidthInput = document.getElementById("canvas-width-input");
+        if (htmlWidthInput && htmlWidthInput instanceof HTMLInputElement) {
+            htmlWidthInput.value = canvasWidth.toString();
+        }
+
+        const htmlHeightInput = document.getElementById("canvas-height-input");
+        if (htmlHeightInput && htmlHeightInput instanceof HTMLInputElement) {
+            htmlHeightInput.value = canvasHeight.toString();
         }
 
         nLineAgents = 40 + Math.floor(charB / 1.8);
@@ -411,6 +434,56 @@ const sketch = (p5: P5) => {
 
                 htmlnewseed.appendChild(downloadButton);
             }
+
+            if (!document.getElementById("dev-mode")) {
+                const devmodeCheck = document.createElement("input");
+                devmodeCheck.type = "checkbox";
+                devmodeCheck.id = "dev-mode-check";
+                devmodeCheck.checked = devMode;
+                devmodeCheck.addEventListener("change", toggleDevMode);
+
+                const devmodeLabel = document.createElement("label");
+                devmodeLabel.htmlFor = "dev-mode-check";
+                devmodeLabel.innerHTML = "Dev Mode";
+
+                const container = document.createElement("div");
+                container.className = "my-20";
+
+                htmlnewseed.appendChild(container);
+                container.appendChild(devmodeLabel);
+                container.appendChild(devmodeCheck);
+            }
+
+            if (!document.getElementById("canvas-width-input")) {
+                const canvasWidthInput = document.createElement("input");
+                canvasWidthInput.id = "canvas-width-input";
+                canvasWidthInput.type = "number";
+                canvasWidthInput.value = p5.width.toString();
+
+                const widthValue = parseInt(canvasWidthInput.value);
+                const heightValue = widthValue * 1.2;
+                canvasWidthInput.addEventListener("change", () => {
+                    p5.resizeCanvas(widthValue, heightValue);
+                    store.setState({
+                        canvasWidth: widthValue,
+                        canvasHeight: heightValue,
+                    });
+                    setupFromSeed();
+                    doSetup();
+                });
+
+                htmlnewseed.appendChild(canvasWidthInput);
+            }
+
+            if (!document.getElementById("canvas-height-input")) {
+                const canvasHeightInput = document.createElement("input");
+                canvasHeightInput.id = "canvas-height-input";
+                canvasHeightInput.type = "number";
+                canvasHeightInput.value = p5.height.toString();
+                canvasHeightInput.disabled = true;
+
+                htmlnewseed.appendChild(canvasHeightInput);
+            }
         }
     };
 
@@ -513,7 +586,7 @@ const sketch = (p5: P5) => {
                     },
                     blendMode: Palettes[selectedPalette].isDark
                         ? p5.OVERLAY
-                        : undefined,
+                        : p5.DARKEST,
                     frameCount: p5.frameCount - deltaTime,
                 });
             }

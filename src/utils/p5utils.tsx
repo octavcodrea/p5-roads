@@ -1,12 +1,14 @@
 import P5 from "p5";
 import { u } from "../app";
 import {
+    addHSV,
     addHSVToRGBACode,
     calculate3DDistance,
     calculatePointFromAngle,
     hexToRgb,
     hsvToRgb,
     rgbToHsv,
+    roundDecimals,
     rtd,
     sr,
     sre,
@@ -83,6 +85,7 @@ export function brushstrokePencil(params: {
     stipplePositionRandomness?: number;
     stippleSizeRandomness?: number;
     frameCount?: number;
+    blendMode?: P5.BLEND_MODE;
 }) {
     const {
         p5,
@@ -260,6 +263,7 @@ export function brushstrokeLine(brushParams: {
 
     drip?: number;
     directionAngle?: number;
+    devMode?: boolean;
 }) {
     let {
         p5,
@@ -360,24 +364,31 @@ export function brushstrokeLine(brushParams: {
                         srnExtra(y, y.toString() + fc + i) *
                         stipplePositionRandomness;
 
-                    p5.line(
-                        xStart + randX,
-                        yStart + randY,
-                        xEnd + randX,
-                        yEnd + randY
-                    );
-
-                    // polygonFromLine({
-                    //     p5: p5,
-                    //     x1: xStart + randX,
-                    //     y1: yStart + randY,
-                    //     x2: xEnd + randX,
-                    //     y2: yEnd + randY,
-                    //     color: c,
-                    //     width: brushStrokeWidth / steps,
-                    //     sides: 8,
-                    //     randomness: brushStrokeWidth / 64,
-                    // });
+                    if (
+                        brushParams.devMode === true ||
+                        brushParams.devMode === undefined
+                    ) {
+                        p5.line(
+                            xStart + randX,
+                            yStart + randY,
+                            xEnd + randX,
+                            yEnd + randY
+                        );
+                    } else {
+                        polygonFromLine({
+                            p5: p5,
+                            x1: xStart + randX,
+                            y1: yStart + randY,
+                            x2: xEnd + randX,
+                            y2: yEnd + randY,
+                            color: c,
+                            width: brushStrokeWidth / steps,
+                            sides: 12,
+                            randomness: Math.round(brushStrokeWidth / 40),
+                            steps: 5,
+                            colorRandomness: 0.03,
+                        });
+                    }
 
                     if (drip !== undefined) {
                         if (sr(drip.toString() + randX + randY + fc) > 0.99) {
@@ -389,27 +400,53 @@ export function brushstrokeLine(brushParams: {
                                 srnExtra(y, y.toString() + fc + i) *
                                 brushStrokeWidth;
 
-                            p5.line(
-                                xStart + offsetX,
-                                yStart + offsetY,
-                                xEnd + offsetX,
-                                yEnd + offsetY
-                            );
-
-                            // polygonFromLine({
-                            //     p5: p5,
-                            //     x1: xStart + offsetX,
-                            //     y1: yStart + offsetY,
-                            //     x2: xEnd + offsetX,
-                            //     y2: yEnd + offsetY,
-                            //     color: c,
-                            //     width: brushStrokeWidth / steps,
-                            //     sides: 6,
-                            //     randomness: brushStrokeWidth / 64,
-                            // });
+                            if (
+                                brushParams.devMode === true ||
+                                brushParams.devMode === undefined
+                            ) {
+                                p5.line(
+                                    xStart + offsetX,
+                                    yStart + offsetY,
+                                    xEnd + offsetX,
+                                    yEnd + offsetY
+                                );
+                            } else {
+                                polygonFromLine({
+                                    p5: p5,
+                                    x1: xStart + offsetX,
+                                    y1: yStart + offsetY,
+                                    x2: xEnd + offsetX,
+                                    y2: yEnd + offsetY,
+                                    color: c,
+                                    width: brushStrokeWidth / steps,
+                                    sides: 12,
+                                    randomness: Math.round(
+                                        brushStrokeWidth / 40
+                                    ),
+                                    steps: 5,
+                                });
+                            }
                         }
                     } else {
-                        p5.line(xStart, yStart, xEnd, yEnd);
+                        if (
+                            brushParams.devMode === true ||
+                            brushParams.devMode === undefined
+                        ) {
+                            p5.line(xStart, yStart, xEnd, yEnd);
+                        } else {
+                            polygonFromLine({
+                                p5: p5,
+                                x1: xStart,
+                                y1: yStart,
+                                x2: xEnd,
+                                y2: yEnd,
+                                color: c,
+                                width: brushStrokeWidth / steps,
+                                sides: 12,
+                                randomness: Math.round(brushStrokeWidth / 40),
+                                steps: 5,
+                            });
+                        }
                     }
 
                     if (stippleSizeRandomness !== undefined) {
@@ -538,6 +575,7 @@ export const brushstrokeRectangle = (params: {
                         stippleSizeRandomness: bStippleSizeRandomness,
                         density: 1,
                         frameCount: frameCount,
+                        blendMode: blendMode,
                     });
                     break;
 
@@ -616,6 +654,7 @@ export const linesRectangle = (params: {
     );
 
     p5.blendMode(blendMode ?? p5.BLEND);
+    p5.stroke(color);
     p5.strokeWeight(lWeight);
     p5.beginShape();
 
@@ -667,8 +706,6 @@ export const linesRectangle = (params: {
             xStart + randX2,
             yStart + randY2
         );
-
-        p5.stroke(color);
     }
 
     p5.endShape();
@@ -880,6 +917,8 @@ export const polygonFromLine = (params: {
     sides?: number;
     steps?: number;
     randomness?: number;
+    blendMode?: P5.BLEND_MODE;
+    colorRandomness?: number;
 }) => {
     const {
         p5,
@@ -892,12 +931,28 @@ export const polygonFromLine = (params: {
         sides = 6,
         steps = 1,
         randomness = 0,
+        blendMode = p5.BLEND,
+        colorRandomness = 0,
     } = params;
+
+    let xStart = x1;
+    let yStart = y1;
+
+    let xEnd = x2;
+    let yEnd = y2;
+
+    if (sr(x1) > 0.5) {
+        xStart = x2;
+        yStart = y2;
+
+        xEnd = x1;
+        yEnd = y1;
+    }
 
     p5.angleMode(p5.RADIANS);
 
-    const angleBetweenPoints = p5.atan2(y2 - y1, x2 - x1);
-    const distanceBetweenPoints = p5.dist(x1, y1, x2, y2);
+    const angleBetweenPoints = p5.atan2(yEnd - yStart, xEnd - xStart);
+    const distanceBetweenPoints = p5.dist(xStart, yStart, xEnd, yEnd);
 
     let p0 = { x: 0, y: 0 };
     let p1 = { x: 0, y: 0 };
@@ -909,7 +964,20 @@ export const polygonFromLine = (params: {
             : Math.round(sides / 2) + 2;
 
     for (let i = 0; i < steps; i++) {
-        p5.fill(color);
+        let c = color;
+        if (colorRandomness > 0) {
+            c = addHSVtoP5Color(
+                p5,
+                c,
+                srnExtra(i, x1) * colorRandomness,
+                srnExtra(i + 1, x2) * colorRandomness,
+                srnExtra(i + 2, y1) * colorRandomness
+            );
+        }
+        c.setAlpha(roundDecimals(1 / Math.max(steps - 3, 1), 3));
+
+        p5.fill(c);
+        p5.blendMode(blendMode);
         p5.noStroke();
 
         p5.beginShape();
@@ -918,15 +986,15 @@ export const polygonFromLine = (params: {
             const angle = angleBetweenPoints + (j * p5.TWO_PI) / sides;
 
             const { x, y } = calculatePointFromAngle({
-                originX: x1,
-                originY: y1,
+                originX: xStart,
+                originY: yStart,
                 angle: angle,
                 distance: width / 2,
                 mode: "radians",
             });
 
-            const randX = srn(x.toString() + y.toString()) * randomness;
-            const randY = srn(y.toString() + x.toString()) * randomness;
+            const randX = srn(x.toString() + y + i) * randomness;
+            const randY = srn(y.toString() + i + x) * randomness;
 
             p5.vertex(x + randX, y + randY);
 
@@ -950,8 +1018,8 @@ export const polygonFromLine = (params: {
 
         for (let j = 0; j < noOfSidePoints; j++) {
             const { x: originX, y: originY } = calculatePointFromAngle({
-                originX: x1,
-                originY: y1,
+                originX: xStart,
+                originY: yStart,
                 angle: angleBetweenPoints,
                 distance: width / 4 + distanceBetweenSidePoints * j,
                 mode: "radians",
@@ -977,8 +1045,8 @@ export const polygonFromLine = (params: {
             const angle = angleBetweenPoints + (j * p5.TWO_PI) / sides + p5.PI;
 
             const { x, y } = calculatePointFromAngle({
-                originX: x2,
-                originY: y2,
+                originX: xEnd,
+                originY: yEnd,
                 angle: angle,
                 distance: width / 2,
                 mode: "radians",
@@ -992,8 +1060,8 @@ export const polygonFromLine = (params: {
 
         for (let j = 0; j < noOfSidePoints; j++) {
             const { x: originX, y: originY } = calculatePointFromAngle({
-                originX: x2,
-                originY: y2,
+                originX: xEnd,
+                originY: yEnd,
                 angle: angleBetweenPoints + p5.PI,
                 distance: width / 4 + distanceBetweenSidePoints * j,
                 mode: "radians",
@@ -1030,6 +1098,7 @@ export const polygon = (params: {
     stroke: boolean;
     rotationInDeg?: number;
     randomness?: number;
+    blendMode?: P5.BLEND_MODE;
 }) => {
     const { p5, x, y, radius, sides, color, rotationInDeg, randomness } =
         params;
@@ -1054,6 +1123,7 @@ export const polygon = (params: {
     }
 
     p5.beginShape();
+    p5.blendMode(params.blendMode ?? p5.BLEND);
 
     for (let i = 0; i < sides; i++) {
         const angle = p5.map(i, 0, sides, 0, p5.TWO_PI);
@@ -1093,6 +1163,8 @@ export const polygonRough = (params: {
 
     rotationInDeg?: number;
     randomness?: number;
+    blendMode?: P5.BLEND_MODE;
+    colorVariation?: number;
 }) => {
     const {
         p5,
@@ -1116,6 +1188,7 @@ export const polygonRough = (params: {
     p5.angleMode(p5.RADIANS);
 
     p5.stroke(color);
+    p5.blendMode(params.blendMode ?? p5.BLEND);
 
     if (params.fill) {
         p5.fill(color);
@@ -1160,6 +1233,19 @@ export const polygonRough = (params: {
         );
 
         for (let j = 0; j < numberOfLines; j++) {
+            let col = color;
+            if (params.colorVariation) {
+                col = addHSVtoP5Color(
+                    p5,
+                    col,
+                    0,
+                    params.colorVariation * srnExtra(j, i.toString() + x),
+                    params.colorVariation * srnExtra(j, i.toString() + x + y)
+                );
+            }
+
+            p5.stroke(col);
+
             const x1 = sx1 + (sx2 - sx1) * (j / numberOfLines);
             const y1 = sy1 + (sy2 - sy1) * (j / numberOfLines);
 
@@ -1195,3 +1281,20 @@ export const map = (
 
     return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
 };
+
+export function colorWithOpacity(color: P5.Color, opacity: number) {
+    return color.setAlpha(opacity);
+}
+
+export function addHSVtoP5Color(
+    p5: P5,
+    color: P5.Color,
+    h: number,
+    s: number,
+    v: number
+) {
+    const colorString = color.toString("#rrggbb");
+    const colorWithHSV = addHSV(colorString, h, s, v);
+
+    return p5.color(colorWithHSV);
+}

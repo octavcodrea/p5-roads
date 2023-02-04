@@ -13,7 +13,7 @@ import {
     polygonRough,
     vector_field,
 } from "./utils/p5utils";
-import { getState } from "./store";
+import { getState, store } from "./store";
 
 let selectedPalette = 0;
 setTimeout(() => {
@@ -44,6 +44,7 @@ export class TriangleStripAgent {
 
     trianglesDrawn: number;
     removeAgent: (agent: TriangleStripAgent) => void;
+    devMode: boolean = true;
 
     constructor(params: {
         p5: P5;
@@ -118,9 +119,6 @@ export class TriangleStripAgent {
 
         const randSize =
             trigSizeRandomness !== undefined ? srn(x1) * trigSizeRandomness : 0;
-        p5.blendMode(
-            Palettes[selectedPalette].isDark ? p5.LIGHTEST : p5.DARKEST
-        );
 
         if (x2 !== undefined && y2 !== undefined) {
             const rectHeight =
@@ -174,6 +172,9 @@ export class TriangleStripAgent {
                     detailSize: width / 30,
                     strokeWidth: width / 16,
                     strokeWidthRandomness: width / 32,
+                    blendMode: Palettes[selectedPalette].isDark
+                        ? p5.LIGHTEST
+                        : p5.DARKEST,
                 });
 
                 this.trianglesDrawn++;
@@ -224,6 +225,9 @@ export class TriangleStripAgent {
                     detailSize: width / 30,
                     strokeWidth: width / 16,
                     strokeWidthRandomness: width / 32,
+                    blendMode: Palettes[selectedPalette].isDark
+                        ? p5.LIGHTEST
+                        : p5.DARKEST,
                 });
 
                 this.trianglesDrawn++;
@@ -526,6 +530,7 @@ export class LineAgent {
 
     removeAgent: (agent: LineAgent) => void;
     deltaTime: number;
+    devMode: boolean = true;
 
     constructor(params: {
         p5: P5;
@@ -591,6 +596,7 @@ export class LineAgent {
 
         this.step = 1;
         this.removeAgent = params.removeAgent;
+        this.devMode = store.getState().devMode;
 
         if (this.agentIndex % 5 === 0) {
             this.type = "pencil";
@@ -721,9 +727,6 @@ export class LineAgent {
         } else if (this.type === "circles") {
             if (((p5.frameCount - this.deltaTime) * 0.1) % 2 === 0) {
                 //blend mode
-                p5.blendMode(
-                    Palettes[selectedPalette].isDark ? p5.LIGHTEST : p5.DARKEST
-                );
 
                 this.strokeWidth =
                     this.strokeWidth * sre(2, seedfc, 0.95, 1.05);
@@ -748,12 +751,16 @@ export class LineAgent {
                         p5.color(Palettes[selectedPalette].pencilColor)
                     ),
                     fill: false,
-                    randomness: thisSize / 64,
+                    randomness: thisSize / 32,
                     rotationInDeg: sr(this.p.x) * 180,
 
                     detailSize: thisSize / 10,
                     strokeWidth: thisSize / 8,
                     strokeWidthRandomness: thisSize / 16,
+                    blendMode: Palettes[selectedPalette].isDark
+                        ? p5.LIGHTEST
+                        : p5.DARKEST,
+                    colorVariation: 0.05,
                 });
             }
         } else {
@@ -807,6 +814,7 @@ export class LineAgent {
                 frameCount: p5.frameCount - this.deltaTime,
                 directionAngle: angleFromVector(this.vector),
                 drip: 0.02,
+                devMode: this.devMode,
             });
         }
 
