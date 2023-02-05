@@ -509,7 +509,7 @@ export class LineAgent {
     agentIndex: number;
     p: P5.Vector;
     direction: number;
-    linesDirection: "down-right" | "up-right";
+    linesDirection: "Down" | "Up";
     colors: P5.Color[];
     scale: number;
     strokeWidth: number;
@@ -531,6 +531,7 @@ export class LineAgent {
     removeAgent: (agent: LineAgent) => void;
     deltaTime: number;
     devMode: boolean = true;
+    noiseIntensity: number;
 
     constructor(params: {
         p5: P5;
@@ -539,7 +540,7 @@ export class LineAgent {
         seed: string;
         layer?: number;
         direction?: number;
-        linesDirection: "down-right" | "up-right";
+        linesDirection: "Down" | "Up";
         scale: number;
         agentIndex?: number;
         colors?: P5.Color[];
@@ -550,6 +551,7 @@ export class LineAgent {
         stipplePositionRandomness?: number;
         sizeVariance?: number;
         spawnSizeVariance?: number;
+        noiseIntensity?: number;
     }) {
         const {
             p5,
@@ -589,6 +591,7 @@ export class LineAgent {
         this.density = params.density;
         this.stipplePositionRandomness = params.stipplePositionRandomness;
         this.sizeVariance = params.sizeVariance;
+        this.noiseIntensity = params.noiseIntensity ?? 1;
 
         this.mode = params.mode ?? "smooth";
 
@@ -617,7 +620,9 @@ export class LineAgent {
             this.p.y,
             this.scale,
             this.linesDirection,
-            this.seed
+            this.seed,
+            p5.frameCount - this.deltaTime,
+            1
         );
         this.vectorStep = 10;
         console.log("size variance: ", this.sizeVariance);
@@ -635,7 +640,8 @@ export class LineAgent {
                 this.scale,
                 this.linesDirection,
                 this.seed,
-                p5.frameCount - this.deltaTime
+                p5.frameCount - this.deltaTime,
+                this.noiseIntensity
             );
         } else {
             if (
@@ -650,7 +656,8 @@ export class LineAgent {
                     this.scale,
                     this.linesDirection,
                     this.seed,
-                    p5.frameCount - this.deltaTime
+                    p5.frameCount - this.deltaTime,
+                    this.noiseIntensity
                 );
                 this.vectorStep = sre(9, this.seed, 10, 50);
             }
@@ -775,7 +782,7 @@ export class LineAgent {
                 );
 
             if (this.strokeWidth > u(50)) this.strokeWidth *= 0.9;
-            if (this.strokeWidth < u(3)) this.strokeWidth *= 1.2;
+            if (this.strokeWidth < u(2)) this.strokeWidth *= 1.2;
             p5.strokeWeight(this.strokeWidth);
 
             let colors = seedShuffle(this.colors, seedfc);

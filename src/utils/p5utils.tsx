@@ -873,9 +873,10 @@ export function vector_field(
     x: number,
     y: number,
     myScale: number,
-    direction: "down-right" | "up-right",
+    direction: "Down" | "Up",
     seed?: string,
-    frameCount?: number
+    frameCount?: number,
+    noiseIntensity?: number
 ) {
     x = p5.map(x, 0, p5.width, -myScale, myScale);
     y = p5.map(y, 0, p5.height, -myScale, myScale);
@@ -883,21 +884,23 @@ export function vector_field(
     const unit = u(1);
 
     const s = seed ?? "seed";
+    const z = srn(s) * 100;
     const fc = frameCount ?? p5.frameCount;
+    const ni = noiseIntensity ?? 1;
 
     let vectorX =
         0.8 +
         p5.sin(srExtra(1, s) * 100 + fc * 0.01 * srExtra(1, s)) *
             2 *
             srExtra(2, s) +
-        (p5.noise(x, y) - 0.5) * 4;
+        (p5.noise(x, y, z) - 0.5) * 4 * ni;
 
     let vectorY =
-        (direction === "down-right" ? 1 : -1) +
+        (direction === "Down" ? 1 : -1) +
         p5.cos(srExtra(2, s) * 100 + fc * 0.04 * srExtra(3, s)) *
             0.8 *
             srExtra(4, s) +
-        (p5.noise(x, y) - 0.5) * 4;
+        (p5.noise(x, y, z) - 0.5) * 4 * ni;
 
     return p5.createVector(vectorX * unit, vectorY * unit);
 }

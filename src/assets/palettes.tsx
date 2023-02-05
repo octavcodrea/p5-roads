@@ -416,7 +416,7 @@ const Palettes: PaletteType[] = [
         pencilColor: "#1a2d42",
 
         trianglesColor: "#234061",
-        stripLinesColor: "#cafafb",
+        stripLinesColor: "#eafafb",
 
         colorsA: [
             { color: "#8E294E", opacity: 1 },

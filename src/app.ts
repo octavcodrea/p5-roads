@@ -21,6 +21,9 @@ import { store } from "./store";
 
 let { canvasWidth, canvasHeight, devMode } = store.getState();
 
+const intensityWords = ["Very low", "Low", "Medium", "High", "Very high"];
+const numberWords = ["Very few", "Few", "Medium", "Many", "Very many"];
+
 const unit = canvasWidth / 1000;
 let deltaTime = 0;
 
@@ -64,8 +67,7 @@ const sketch = (p5: P5) => {
     let seedG = charG.toString();
     let seedH = charH.toString();
 
-    let linesDirection: "down-right" | "up-right" =
-        charA > 50 ? "down-right" : "up-right";
+    let linesDirection: "Down" | "Up" = charA % 2 === 0 ? "Down" : "Up";
     let selectedPalette = Math.floor(Palettes.length * (charD / 100));
 
     let nLineAgents = 0;
@@ -97,7 +99,9 @@ const sketch = (p5: P5) => {
         seedG = charG.toString();
         seedH = charH.toString();
 
-        linesDirection = charA > 50 ? "down-right" : "up-right";
+        p5.noiseSeed(parseInt(seed));
+
+        linesDirection = charA % 2 === 0 ? "Down" : "Up";
         selectedPalette = Math.floor(Palettes.length * (charD / 100));
         store.setState({ selectedPalette: selectedPalette });
 
@@ -208,6 +212,11 @@ const sketch = (p5: P5) => {
 
             console.log("added noise setup");
 
+            const prog = document.getElementById("progress");
+            if (prog) {
+                prog.innerHTML = "In progress...";
+            }
+
             const scale = 1;
 
             for (let i = 0; i < nLineAgents; i++) {
@@ -231,7 +240,7 @@ const sketch = (p5: P5) => {
                                     i.toString()
                             ));
                 const y0 =
-                    linesDirection === "down-right"
+                    linesDirection === "Down"
                         ? p5.height * sre(i, seedE + i, -0.15, 0)
                         : p5.height * sre(i + 2, seedE + i, 1, 1.15);
 
@@ -262,6 +271,7 @@ const sketch = (p5: P5) => {
                             3
                         ),
                         spawnSizeVariance: map(charF, 0, 99, 0, 0.99, "exp"),
+                        noiseIntensity: map(charA, 0, 99, 0.5, 2, "exp"),
                     })
                 );
             }
@@ -350,7 +360,19 @@ const sketch = (p5: P5) => {
 
             const htmlsizevariance = document.getElementById("info-size");
             if (htmlsizevariance) {
-                const sizeName = charE.toString();
+                const sizeName =
+                    intensityWords[
+                        Math.floor(
+                            map(
+                                charE,
+                                0,
+                                99,
+                                0,
+                                intensityWords.length - 1,
+                                "exp"
+                            )
+                        )
+                    ];
                 htmlsizevariance.innerHTML = sizeName;
             }
 
@@ -358,6 +380,53 @@ const sketch = (p5: P5) => {
             if (htmldirection) {
                 const directionName = linesDirection;
                 htmldirection.innerHTML = directionName;
+            }
+
+            const htmllines = document.getElementById("info-lines");
+            if (htmllines) {
+                const linesName =
+                    numberWords[
+                        Math.floor(
+                            map(
+                                charB,
+                                0,
+                                99,
+                                0,
+                                numberWords.length - 1,
+                                "linear"
+                            )
+                        )
+                    ];
+                htmllines.innerHTML = linesName;
+            }
+
+            const htmlrandomness = document.getElementById("info-randomness");
+            if (htmlrandomness) {
+                const randomnessName =
+                    intensityWords[
+                        Math.floor(
+                            map(
+                                charA,
+                                0,
+                                99,
+                                0,
+                                intensityWords.length - 1,
+                                "linear"
+                            )
+                        )
+                    ];
+                htmlrandomness.innerHTML = randomnessName;
+            }
+
+            const htmlspread = document.getElementById("info-spread");
+            if (htmlspread) {
+                const spreadName =
+                    intensityWords[
+                        Math.floor(
+                            map(charC, 0, 99, 0, intensityWords.length, "exp")
+                        )
+                    ];
+                htmlspread.innerHTML = spreadName;
             }
 
             console.log("line agents:", nLineAgents);
@@ -423,11 +492,14 @@ const sketch = (p5: P5) => {
                 downloadButton.onclick = () => {
                     //date for title
                     p5.saveCanvas(
-                        `${new Date().toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                        })}-${seed.toString()}`,
+                        `${seed.toString()}-${new Date().toLocaleDateString(
+                            "en-US",
+                            {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                            }
+                        )}`,
                         "png"
                     );
                 };
@@ -442,7 +514,11 @@ const sketch = (p5: P5) => {
                 devmodeCheck.checked = devMode;
                 devmodeCheck.addEventListener("change", toggleDevMode);
 
+                const devmodeSpan = document.createElement("span");
+                devmodeSpan.className = "checkmark";
+
                 const devmodeLabel = document.createElement("label");
+                devmodeLabel.className = "dev-mode-label";
                 devmodeLabel.htmlFor = "dev-mode-check";
                 devmodeLabel.innerHTML = "Dev Mode";
 
@@ -451,7 +527,8 @@ const sketch = (p5: P5) => {
 
                 htmlnewseed.appendChild(container);
                 container.appendChild(devmodeLabel);
-                container.appendChild(devmodeCheck);
+                devmodeLabel.appendChild(devmodeCheck);
+                devmodeLabel.appendChild(devmodeSpan);
             }
 
             if (!document.getElementById("canvas-width-input")) {
@@ -505,6 +582,10 @@ const sketch = (p5: P5) => {
             }
 
             console.log("added noise final");
+            const prog = document.getElementById("progress");
+            if (prog) {
+                prog.innerHTML = "Done!";
+            }
 
             p5.noLoop();
         }
