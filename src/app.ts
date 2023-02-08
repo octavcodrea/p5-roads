@@ -363,14 +363,7 @@ const sketch = (p5: P5) => {
                 const sizeName =
                     intensityWords[
                         Math.floor(
-                            map(
-                                charE,
-                                0,
-                                99,
-                                0,
-                                intensityWords.length - 1,
-                                "exp"
-                            )
+                            map(charE, 0, 100, 0, intensityWords.length, "exp")
                         )
                     ];
                 htmlsizevariance.innerHTML = sizeName;
@@ -387,14 +380,7 @@ const sketch = (p5: P5) => {
                 const linesName =
                     numberWords[
                         Math.floor(
-                            map(
-                                charB,
-                                0,
-                                99,
-                                0,
-                                numberWords.length - 1,
-                                "linear"
-                            )
+                            map(charB, 0, 100, 0, numberWords.length, "linear")
                         )
                     ];
                 htmllines.innerHTML = linesName;
@@ -408,9 +394,9 @@ const sketch = (p5: P5) => {
                             map(
                                 charA,
                                 0,
-                                99,
+                                100,
                                 0,
-                                intensityWords.length - 1,
+                                intensityWords.length,
                                 "linear"
                             )
                         )
@@ -423,7 +409,7 @@ const sketch = (p5: P5) => {
                 const spreadName =
                     intensityWords[
                         Math.floor(
-                            map(charC, 0, 99, 0, intensityWords.length, "exp")
+                            map(charC, 0, 100, 0, intensityWords.length, "exp")
                         )
                     ];
                 htmlspread.innerHTML = spreadName;

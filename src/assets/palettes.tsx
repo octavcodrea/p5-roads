@@ -413,10 +413,10 @@ const Palettes: PaletteType[] = [
         blendMode: "multiply",
 
         accentDark: "#234061",
-        pencilColor: "#1a2d42",
+        pencilColor: "#417390",
 
-        trianglesColor: "#234061",
-        stripLinesColor: "#eafafb",
+        trianglesColor: "#274568",
+        stripLinesColor: "#fafafb",
 
         colorsA: [
             { color: "#8E294E", opacity: 1 },
